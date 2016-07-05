@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2015
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "build_a_rocket_v01.CSharp.Plugins", "build_a_rocket_v01.CSharp.Plugins.csproj", "{051DE7CE-F24F-9E24-7294-6BCFF7A6F2FF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "build_a_rocket_v01.CSharp", "build_a_rocket_v01.CSharp.csproj", "{D010010F-2E83-8121-A63D-A35C7EB70170}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "build_a_rocket_v01.CSharp.Editor", "build_a_rocket_v01.CSharp.Editor.csproj", "{6960C427-84AD-5D3D-4105-617E31EC459D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{051DE7CE-F24F-9E24-7294-6BCFF7A6F2FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{051DE7CE-F24F-9E24-7294-6BCFF7A6F2FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{051DE7CE-F24F-9E24-7294-6BCFF7A6F2FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{051DE7CE-F24F-9E24-7294-6BCFF7A6F2FF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D010010F-2E83-8121-A63D-A35C7EB70170}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D010010F-2E83-8121-A63D-A35C7EB70170}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D010010F-2E83-8121-A63D-A35C7EB70170}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D010010F-2E83-8121-A63D-A35C7EB70170}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6960C427-84AD-5D3D-4105-617E31EC459D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6960C427-84AD-5D3D-4105-617E31EC459D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6960C427-84AD-5D3D-4105-617E31EC459D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6960C427-84AD-5D3D-4105-617E31EC459D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
