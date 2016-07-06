@@ -27,7 +27,7 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 	public void OnDrag (PointerEventData eventData)
 	{
         var v3 = new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.nearClipPlane);
-		transform.position = Camera.main.ScreenToWorldPoint(v3); 
+		transform.position = Camera.main.ScreenToWorldPoint(v3); // Allows for camera space conversion
 	}
 
 	#endregion
