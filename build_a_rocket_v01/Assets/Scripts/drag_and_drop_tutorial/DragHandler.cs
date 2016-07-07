@@ -38,8 +38,21 @@ public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 	{
 		itemBeingDragged = null;
 		GetComponent<CanvasGroup> ().blocksRaycasts = true;
-		if (transform.parent == startParent) {
-			transform.position = startPosition;
+        if (transform.childCount > 0 && transform.GetChild(0).tag == transform.parent.tag) // flip fins if necessary
+        {
+
+            Vector3 newScale = transform.localScale;
+            newScale.x *= -1;
+            transform.localScale = newScale; // Note: Tranform.Rotate() works, but doesn't let you drag object out again
+            var temp = transform.tag;
+            transform.tag = transform.GetChild(0).tag; // Update tags
+            transform.GetChild(0).tag = temp;
+        }
+        if (transform.parent == startParent || transform.tag != transform.parent.tag)
+        {
+
+                transform.position = startPosition;
+                transform.parent = startParent;
 		}
 	}
 

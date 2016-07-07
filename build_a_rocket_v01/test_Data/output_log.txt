@@ -20,7 +20,7 @@ Platform assembly: C:\Users\Rocket\Documents\GitHub\rocketgame_v01\build_a_rocke
 Loading C:\Users\Rocket\Documents\GitHub\rocketgame_v01\build_a_rocket_v01\test_Data\Managed\CookComputing.XmlRpcV2.dll into Unity Child Domain
 Platform assembly: C:\Users\Rocket\Documents\GitHub\rocketgame_v01\build_a_rocket_v01\test_Data\Managed\ThalamusUnityClientMessages.dll (this message is harmless)
 Loading C:\Users\Rocket\Documents\GitHub\rocketgame_v01\build_a_rocket_v01\test_Data\Managed\ThalamusUnityClientMessages.dll into Unity Child Domain
-- Completed reload, in  0.149 seconds
+- Completed reload, in  0.155 seconds
 Platform assembly: C:\Users\Rocket\Documents\GitHub\rocketgame_v01\build_a_rocket_v01\test_Data\Managed\System.Core.dll (this message is harmless)
 Platform assembly: C:\Users\Rocket\Documents\GitHub\rocketgame_v01\build_a_rocket_v01\test_Data\Managed\System.dll (this message is harmless)
 desktop: 1920x1080 60Hz; virtual: 1920x1080 at 0,0
@@ -28,7 +28,7 @@ desktop: 1920x1080 60Hz; virtual: 1920x1080 at 0,0
 XInput1_3.dll not found. Trying XInput9_1_0.dll instead...
 <RI> Input initialized.
 <RI> Initialized touch support.
-UnloadTime: 0.598286 ms
+UnloadTime: 0.767636 ms
 Setting up 2 worker threads for Enlighten.
-  Thread -> id: 1428 -> priority: 1 
-  Thread -> id: 28a0 -> priority: 1 
+  Thread -> id: 28ec -> priority: 1 
+  Thread -> id: 2174 -> priority: 1 
