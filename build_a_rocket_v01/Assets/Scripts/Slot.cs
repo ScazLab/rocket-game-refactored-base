@@ -2,7 +2,10 @@
 using System.Collections;
 using UnityEngine.EventSystems;
 
-public class Slot : MonoBehaviour, IDropHandler{
+public class Slot : MonoBehaviour, IDropHandler, IPointerClickHandler {
+
+	public bool isDashedOutlinePiece;
+
 	public GameObject item {
 		get {
 			if (transform.childCount > 0) {
@@ -21,5 +24,18 @@ public class Slot : MonoBehaviour, IDropHandler{
 			ExecuteEvents.ExecuteHierarchy<IHasChanged>(gameObject, null, (x,y) => x.HasChanged());
 		}
 	}
+	#endregion
+
+	#region IPointerClickHandler implementation
+
+	public void OnPointerClick (PointerEventData eventData)
+	{
+		// if there's a click on a piece that's a dashed outline piece then we want to trigger
+		// the animation that brings in the panels with that kind of piece
+		if (isDashedOutlinePiece) {
+			Debug.Log ("Trigger panels for bringing in new pieces");
+		}
+	}
+
 	#endregion
 }

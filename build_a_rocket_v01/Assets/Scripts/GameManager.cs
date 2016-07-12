@@ -39,6 +39,17 @@ public class GameManager : MonoBehaviour {
 	[SerializeField] GameObject toggleT;
 	[SerializeField] GameObject toggleC;
 
+	// selected outline pieces
+	[SerializeField] GameObject[] selectedBodyOutlineSlots; 
+	[SerializeField] GameObject[] selectedBoosterOutlineSlots; 
+	[SerializeField] GameObject[] selectedConeOutlineSlots;
+	[SerializeField] GameObject[] selectedFinOutlineSlots;  
+
+	// normal outline pieces
+	[SerializeField] GameObject[] dashedBodyOutlineSlots;
+	[SerializeField] GameObject[] dashedBoosterOutlineSlots;
+	[SerializeField] GameObject[] dashedConeOutlineSlots;
+	[SerializeField] GameObject[] dashedFinOutlineSlots;
 
 	// the jets
 	[SerializeField] ParticleSystem bottomJet1;
@@ -63,6 +74,14 @@ public class GameManager : MonoBehaviour {
 	// if the game state bools
 	public bool gameStarted = false;
 	public bool paused = false;
+
+	// type of piece selected
+	private int pieceTypeSelected;
+	private const int NONE_SELECTED = 0;
+	private const int BODY = 1;
+	private const int FIN = 2;
+	private const int BOOSTER = 3;
+	private const int CONE = 4;
 
 	private float timeElapsed = 0f;
 	private float timeElapsed2 = 0f;
@@ -140,10 +159,12 @@ public class GameManager : MonoBehaviour {
 		doOnce = false;
 		
 		// initialize the thalamusUnity object
-		// ETHAN
 		if (sendThalamusMsgs) {
 			thalamusUnity = new ThalamusUnity ();
 		}
+
+		// initialize pieceTypeSelected
+		pieceTypeSelected = NONE_SELECTED;
 
 		// initialize the audio sources
 		var audioSources = GetComponents<AudioSource> ();
@@ -154,6 +175,9 @@ public class GameManager : MonoBehaviour {
 	void Start ()
 	{
 		resultsAnimator = resultsPanel.GetComponent<Animator> ();
+
+		// hide all outline pieces so that we don't click them
+		HideAllOutlinePieces ();
 	}
 	
 	// Update is called once per frame
@@ -404,10 +428,77 @@ public class GameManager : MonoBehaviour {
 		}
 	}
 
+	string FormatTime(float value) {
+		TimeSpan t = TimeSpan.FromSeconds (value);
+		return string.Format("{0:D2}:{1:D2}", t.Minutes, t.Seconds);
+	}
+
+	string FormatTime2(int value) 
+	{
+		int min, sec;
+		min = value / 60;
+		sec = value % 60;
+		return string.Format("{0:D2}:{1:D2}", min, sec);
+	}
+
+	int GetSeconds(float value) {
+		TimeSpan t = TimeSpan.FromSeconds (value);
+		return (t.Minutes * 60 + t.Seconds);
+	}
+
+	void HideAllOutlinePieces() {
+		HidePieces (selectedBodyOutlineSlots);
+		HidePieces (selectedBoosterOutlineSlots);
+		HidePieces (selectedConeOutlineSlots);
+		HidePieces (selectedFinOutlineSlots);
+		HidePieces (dashedBodyOutlineSlots);
+		HidePieces (dashedBoosterOutlineSlots);
+		HidePieces (dashedConeOutlineSlots);
+		HidePieces (dashedFinOutlineSlots);
+	}
+
+	void HidePieces (GameObject[] pieces) {
+		foreach (GameObject piece in pieces) {
+			piece.GetComponent<Image> ().enabled = false;
+		}
+	}
+
+	void HideUIElements() {
+		overlayPanel.enabled = false;
+		startButton.SetActive (false);
+		toggleR.SetActive (false);
+		toggleT.SetActive (false);
+		toggleC.SetActive (false);
+		gameOverText.enabled = false;
+	}
+
+	// restarts the game for each trial
+	void RestartGame() {
+		// reset the timer
+		timeElapsed = 0;
+	}
+
+	void SetCountdownTimerText(int timerSec)
+	{
+		string timerText = FormatTime2 (timerSec);
+		countdownTimer.text = timerText;
+
+		if (timerSec % 5 == 0) {
+			// send the timer value to Thalamus
+			if (sendThalamusMsgs) {
+				thalamusUnity.Publisher.SentFromUnityToThalamus ("timer*" + timerText);
+			}
+		}
+	}
+
+	void ShowPieces (GameObject[] pieces) {
+		foreach (GameObject piece in pieces) {
+			piece.GetComponent<Image> ().enabled = true;
+		}
+	}
+
 	public void StartGame() {
 		gameStarted = true;
-
-		HideUIElements ();
 
 		// send the condition selected to Thalamus 
 		if (toggleR.GetComponent<Toggle> ().isOn) {
@@ -425,51 +516,88 @@ public class GameManager : MonoBehaviour {
 				thalamusUnity.Publisher.SentFromUnityToThalamus ("control");
 			}
 		}
+
+		// hide the UI elements 
+		HideUIElements ();
+
+		// show the outline pieces 
+		UpdateOutlinePieces ();
 	}
 
-	void HideUIElements() {
-		overlayPanel.enabled = false;
-		startButton.SetActive (false);
-		toggleR.SetActive (false);
-		toggleT.SetActive (false);
-		toggleC.SetActive (false);
-		gameOverText.enabled = false;
-	}
+	void UpdateOutlinePieces() {
+		
+		if (pieceTypeSelected == NONE_SELECTED) {
+			
+			// show all dashed pieces 
+			ShowPieces (dashedBodyOutlineSlots);
+			ShowPieces (dashedBoosterOutlineSlots);
+			ShowPieces (dashedConeOutlineSlots);
+			ShowPieces (dashedFinOutlineSlots);
 
-	void SetCountdownTimerText(int timerSec)
-	{
-		string timerText = FormatTime2 (timerSec);
-		countdownTimer.text = timerText;
+			// hide all selected pieces
+			HidePieces (selectedBodyOutlineSlots);
+			HidePieces (selectedBoosterOutlineSlots);
+			HidePieces (selectedConeOutlineSlots);
+			HidePieces (selectedFinOutlineSlots);
 
-		if (timerSec % 5 == 0) {
-			// send the timer value to Thalamus
-			if (sendThalamusMsgs) {
-				thalamusUnity.Publisher.SentFromUnityToThalamus ("timer*" + timerText);
-			}
+		} else if (pieceTypeSelected == BODY) {
+			
+			// show all dashed pieces and selected body pieces
+			ShowPieces (selectedBodyOutlineSlots);
+			ShowPieces (dashedBoosterOutlineSlots);
+			ShowPieces (dashedConeOutlineSlots);
+			ShowPieces (dashedFinOutlineSlots);
+
+			// hide all selected pieces and dashed body pieces
+			HidePieces (dashedBodyOutlineSlots);
+			HidePieces (selectedBoosterOutlineSlots);
+			HidePieces (selectedConeOutlineSlots);
+			HidePieces (selectedFinOutlineSlots);
+
+		} else if (pieceTypeSelected == BOOSTER) {
+			
+			// show all dashed pieces and selected booster pieces
+			ShowPieces (dashedBodyOutlineSlots);
+			ShowPieces (selectedBoosterOutlineSlots);
+			ShowPieces (dashedConeOutlineSlots);
+			ShowPieces (dashedFinOutlineSlots);
+
+			// hide all selected pieces and dashed booster pieces
+			HidePieces (selectedBodyOutlineSlots);
+			HidePieces (dashedBoosterOutlineSlots);
+			HidePieces (selectedConeOutlineSlots);
+			HidePieces (selectedFinOutlineSlots);
+
+		} else if (pieceTypeSelected == CONE) {
+			
+			// show all dashed pieces and selected cone pieces
+			ShowPieces (dashedBodyOutlineSlots);
+			ShowPieces (dashedBoosterOutlineSlots);
+			ShowPieces (selectedConeOutlineSlots);
+			ShowPieces (dashedFinOutlineSlots);
+
+			// hide all selected pieces and dashed cone pieces
+			HidePieces (selectedBodyOutlineSlots);
+			HidePieces (selectedBoosterOutlineSlots);
+			HidePieces (dashedConeOutlineSlots);
+			HidePieces (selectedFinOutlineSlots);
+
+		} else if (pieceTypeSelected == FIN) {
+
+			// show all dashed pieces and selected fin pieces
+			ShowPieces (dashedBodyOutlineSlots);
+			ShowPieces (dashedBoosterOutlineSlots);
+			ShowPieces (dashedConeOutlineSlots);
+			ShowPieces (selectedFinOutlineSlots);
+
+			// hide all selected pieces and dashed fin pieces
+			HidePieces (selectedBodyOutlineSlots);
+			HidePieces (selectedBoosterOutlineSlots);
+			HidePieces (selectedConeOutlineSlots);
+			HidePieces (dashedFinOutlineSlots);
+
 		}
+
 	}
 
-	// restarts the game for each trial
-	void RestartGame() {
-		// reset the timer
-		timeElapsed = 0;
-	}
-
-	int GetSeconds(float value) {
-		TimeSpan t = TimeSpan.FromSeconds (value);
-		return (t.Minutes * 60 + t.Seconds);
-	}
-
-	string FormatTime(float value) {
-		TimeSpan t = TimeSpan.FromSeconds (value);
-		return string.Format("{0:D2}:{1:D2}", t.Minutes, t.Seconds);
-	}
-
-	string FormatTime2(int value) 
-	{
-		int min, sec;
-		min = value / 60;
-		sec = value % 60;
-		return string.Format("{0:D2}:{1:D2}", min, sec);
-	}
 }
