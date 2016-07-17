@@ -41,21 +41,24 @@ namespace BuildARocketGame {
 		{
 			itemBeingDragged = null;
 			GetComponent<CanvasGroup> ().blocksRaycasts = true;
+
+			// if the piece is a fin and we need to flip it, we follow the following procedure
 	        if (transform.childCount > 0 && transform.GetChild(0).tag == transform.parent.tag) // flip fins if necessary
 	        {
-
 	            Vector3 newScale = transform.localScale;
 	            newScale.x *= -1;
 	            transform.localScale = newScale; // Note: Tranform.Rotate() works, but doesn't let you drag object out again
 	            var temp = transform.tag;
 	            transform.tag = transform.GetChild(0).tag; // Update tags
 	            transform.GetChild(0).tag = temp;
-	        }
-	        if (transform.parent == startParent || transform.tag != transform.parent.tag)
-	        {
+			}
 
-	                transform.position = startPosition;
-	                transform.parent = startParent;
+			// if the piece's parent is not of the same type or if it's parent is the panel, 
+			// we send the piece back to where it came from
+			if (transform.parent == startParent || transform.tag != transform.parent.tag)
+			{
+				transform.position = startPosition;
+				transform.parent = startParent;
 			}
 		}
 

@@ -26,9 +26,10 @@ namespace BuildARocketGame {
 		{
 			if (!item) {
 				DragHandler.itemBeingDragged.transform.SetParent (transform);
-				// calls it on everything above this one on the heirarchy until it is handled
-	//			ExecuteEvents.ExecuteHierarchy<IHasChanged>(gameObject, null, (x,y) => x.HasChanged());
 			}
+				
+			/* Note: pieces 'snap' to their slots as a result of having a horizontal layout group
+			 *       on the selected outline piece that they're moving to	*/
 		}
 		#endregion
 

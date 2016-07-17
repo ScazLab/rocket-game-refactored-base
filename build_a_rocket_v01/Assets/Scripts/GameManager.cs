@@ -560,21 +560,27 @@ namespace BuildARocketGame {
 		void UpdateOutlineAndRocketPanelPieces() {
 
 			// hide the selected outlines and show the dashed outlines of the old selected piece type
+			// hide the rocket pieces of the old selected piece type
 			if (lastPieceTypeSelected == Constants.BODY) {
 				HidePieces (selectedBodyOutlineSlots);
 				ShowPieces (dashedBodyOutlineSlots);
+				HidePieces (bodyRocketPieces);
 			} else if (lastPieceTypeSelected == Constants.BOOSTER) {
 				HidePieces (selectedBoosterOutlineSlots);
 				ShowPieces (dashedBoosterOutlineSlots);
+				HidePieces (boosterRocketPieces);
 			} else if (lastPieceTypeSelected == Constants.CONE) {
 				HidePieces (selectedConeOutlineSlots);
 				ShowPieces (dashedConeOutlineSlots);
+				HidePieces (coneRocketPieces);
 			} else if (lastPieceTypeSelected == Constants.FIN) {
 				HidePieces (selectedFinOutlineSlots);
 				ShowPieces (dashedFinOutlineSlots);
+				HidePieces (finRocketPieces);
 			}
 
 			// hide the dashed outlines and show the selected outlines of the new selected piece type
+			// show the rocket pieces of the new selected piece type
 			if (currentPieceTypeSelected == Constants.NONE_SELECTED) {
 				
 				// show all dashed pieces 
@@ -589,20 +595,30 @@ namespace BuildARocketGame {
 				HidePieces (selectedConeOutlineSlots);
 				HidePieces (selectedFinOutlineSlots);
 
+				// hide all the body pieces
+				HidePieces (bodyRocketPieces);
+				HidePieces (boosterRocketPieces);
+				HidePieces (coneRocketPieces);
+				HidePieces (finRocketPieces);
+
 			} else if (currentPieceTypeSelected == Constants.BODY) {
 				HidePieces (dashedBodyOutlineSlots);
 				ShowPieces (selectedBodyOutlineSlots);
+				ShowPieces (bodyRocketPieces);
 
 			} else if (currentPieceTypeSelected == Constants.BOOSTER) {
 				HidePieces (dashedBoosterOutlineSlots);
 				ShowPieces (selectedBoosterOutlineSlots);
+				ShowPieces (boosterRocketPieces);
 
 			} else if (currentPieceTypeSelected == Constants.CONE) {
 				HidePieces (dashedConeOutlineSlots);
 				ShowPieces (selectedConeOutlineSlots);
+				ShowPieces (coneRocketPieces);
 			} else if (currentPieceTypeSelected == Constants.FIN) {
 				HidePieces (dashedFinOutlineSlots);
 				ShowPieces (selectedFinOutlineSlots);
+				ShowPieces (finRocketPieces);
 
 			}
 
