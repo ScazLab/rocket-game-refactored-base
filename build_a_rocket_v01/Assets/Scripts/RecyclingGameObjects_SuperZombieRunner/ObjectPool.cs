@@ -2,45 +2,50 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class ObjectPool : MonoBehaviour {
 
-	public RecycleGameObject prefab;
-
-	private List<RecycleGameObject> poolInstances = new List<RecycleGameObject>();
-
-	private RecycleGameObject CreateInstance(Vector3 pos) {
+namespace BuildARocketGame {
 	
-		var clone = GameObject.Instantiate (prefab);
-		clone.transform.position = pos;
-		// make sure any prefab instance we create is nested into the object pool game object
-		// in our heirarcy view
-		clone.transform.parent = transform;
-	
-		poolInstances.Add (clone);
+	public class ObjectPool : MonoBehaviour {
 
-		return clone;
-	}
+		public RecycleGameObject prefab;
 
-	public RecycleGameObject NextObject(Vector3 pos) {
-	
-		RecycleGameObject instance = null;
+		private List<RecycleGameObject> poolInstances = new List<RecycleGameObject>();
 
-		// recycle inactive game objects
-		foreach (var go in poolInstances) {
-			if (go.gameObject.activeSelf != true) {
-				instance = go;
-				instance.transform.position = pos;
-			}
+		private RecycleGameObject CreateInstance(Vector3 pos) {
+		
+			var clone = GameObject.Instantiate (prefab);
+			clone.transform.position = pos;
+			// make sure any prefab instance we create is nested into the object pool game object
+			// in our heirarcy view
+			clone.transform.parent = transform;
+		
+			poolInstances.Add (clone);
+
+			return clone;
 		}
 
-		// if no instances are found to be inactive, create a new one
-		if (instance == null)
-			instance = CreateInstance (pos);
+		public RecycleGameObject NextObject(Vector3 pos) {
+		
+			RecycleGameObject instance = null;
 
-		instance.Restart ();
+			// recycle inactive game objects
+			foreach (var go in poolInstances) {
+				if (go.gameObject.activeSelf != true) {
+					instance = go;
+					instance.transform.position = pos;
+				}
+			}
 
-		return instance;
-	
+			// if no instances are found to be inactive, create a new one
+			if (instance == null)
+				instance = CreateInstance (pos);
+
+			instance.Restart ();
+
+			return instance;
+		
+		}
+
 	}
 
 }

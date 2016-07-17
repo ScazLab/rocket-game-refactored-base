@@ -1,11 +1,13 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class OutlineInfo : MonoBehaviour {
+namespace BuildARocketGame {
+	public class OutlineInfo : MonoBehaviour {
 
-	public bool objectLocked;
-	// Use this for initialization
-	public void start() {
-		objectLocked = false;
+		public bool objectLocked;
+		// Use this for initialization
+		public void start() {
+			objectLocked = false;
+		}
 	}
 }
