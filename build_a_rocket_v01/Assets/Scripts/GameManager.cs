@@ -42,6 +42,12 @@ namespace BuildARocketGame {
 		[SerializeField] GameObject toggleT;
 		[SerializeField] GameObject toggleC;
 
+		// rocket pieces 
+		[SerializeField] GameObject[] bodyRocketPieces;
+		[SerializeField] GameObject[] boosterRocketPieces;
+		[SerializeField] GameObject[] coneRocketPieces;
+		[SerializeField] GameObject[] finRocketPieces;
+
 		// selected outline pieces
 		[SerializeField] GameObject[] selectedBodyOutlineSlots; 
 		[SerializeField] GameObject[] selectedBoosterOutlineSlots; 
@@ -84,7 +90,8 @@ namespace BuildARocketGame {
 		public bool paused = false;
 
 		// type of piece selected
-		private int pieceTypeSelected;
+		private int currentPieceTypeSelected;
+		private int lastPieceTypeSelected;
 
 		private float timeElapsed = 0f;
 		private float timeElapsed2 = 0f;
@@ -167,7 +174,8 @@ namespace BuildARocketGame {
 			}
 
 			// initialize pieceTypeSelected
-			pieceTypeSelected = Constants.NONE_SELECTED;
+			currentPieceTypeSelected = Constants.NONE_SELECTED;
+			lastPieceTypeSelected = Constants.NONE_SELECTED;
 
 			// initialize the audio sources
 			var audioSources = GetComponents<AudioSource> ();
@@ -524,27 +532,50 @@ namespace BuildARocketGame {
 			HideUIElements ();
 
 			// show the outline pieces 
-			UpdateOutlinePieces ();
+			UpdateOutlineAndRocketPanelPieces ();
 
 			// subscribe to the event that indicates clicks on outline pieces
 			Slot.OnClickForPanelChange += TriggerPanelChange;
 		}
 
 		void TriggerPanelChange (int selectedOutlineType) {
-			Debug.Log ("trigger panel change from game manager: " + selectedOutlineType.ToString());
+			// play the animations to hide the sidebars
 			if (firstStateChangeOccured == true) {
-				// play the animations to hide the sidebars
 				leftPanelAnimator.SetTrigger ("stateChangeTriggerLeft");
 				rightPanelAnimator.SetTrigger ("stateChangeTriggerRight");
 			} else {
 				leftPanelAnimator.SetBool ("firstStateSelectedLeft", true);
 				rightPanelAnimator.SetBool ("firstStateSelectedRight", true);
+				firstStateChangeOccured = true;
 			}
+
+			// update the current and last piece type selected varaibles
+			lastPieceTypeSelected = currentPieceTypeSelected;
+			currentPieceTypeSelected = selectedOutlineType;
+
+			// show/hide the appropriate ouline and rocket panel pieces
+			UpdateOutlineAndRocketPanelPieces();
 		}
 
-		void UpdateOutlinePieces() {
-			
-			if (pieceTypeSelected == Constants.NONE_SELECTED) {
+		void UpdateOutlineAndRocketPanelPieces() {
+
+			// hide the selected outlines and show the dashed outlines of the old selected piece type
+			if (lastPieceTypeSelected == Constants.BODY) {
+				HidePieces (selectedBodyOutlineSlots);
+				ShowPieces (dashedBodyOutlineSlots);
+			} else if (lastPieceTypeSelected == Constants.BOOSTER) {
+				HidePieces (selectedBoosterOutlineSlots);
+				ShowPieces (dashedBoosterOutlineSlots);
+			} else if (lastPieceTypeSelected == Constants.CONE) {
+				HidePieces (selectedConeOutlineSlots);
+				ShowPieces (dashedConeOutlineSlots);
+			} else if (lastPieceTypeSelected == Constants.FIN) {
+				HidePieces (selectedFinOutlineSlots);
+				ShowPieces (dashedFinOutlineSlots);
+			}
+
+			// hide the dashed outlines and show the selected outlines of the new selected piece type
+			if (currentPieceTypeSelected == Constants.NONE_SELECTED) {
 				
 				// show all dashed pieces 
 				ShowPieces (dashedBodyOutlineSlots);
@@ -558,61 +589,20 @@ namespace BuildARocketGame {
 				HidePieces (selectedConeOutlineSlots);
 				HidePieces (selectedFinOutlineSlots);
 
-			} else if (pieceTypeSelected == Constants.BODY) {
-				
-				// show all dashed pieces and selected body pieces
-				ShowPieces (selectedBodyOutlineSlots);
-				ShowPieces (dashedBoosterOutlineSlots);
-				ShowPieces (dashedConeOutlineSlots);
-				ShowPieces (dashedFinOutlineSlots);
-
-				// hide all selected pieces and dashed body pieces
+			} else if (currentPieceTypeSelected == Constants.BODY) {
 				HidePieces (dashedBodyOutlineSlots);
-				HidePieces (selectedBoosterOutlineSlots);
-				HidePieces (selectedConeOutlineSlots);
-				HidePieces (selectedFinOutlineSlots);
+				ShowPieces (selectedBodyOutlineSlots);
 
-			} else if (pieceTypeSelected == Constants.BOOSTER) {
-				
-				// show all dashed pieces and selected booster pieces
-				ShowPieces (dashedBodyOutlineSlots);
-				ShowPieces (selectedBoosterOutlineSlots);
-				ShowPieces (dashedConeOutlineSlots);
-				ShowPieces (dashedFinOutlineSlots);
-
-				// hide all selected pieces and dashed booster pieces
-				HidePieces (selectedBodyOutlineSlots);
+			} else if (currentPieceTypeSelected == Constants.BOOSTER) {
 				HidePieces (dashedBoosterOutlineSlots);
-				HidePieces (selectedConeOutlineSlots);
-				HidePieces (selectedFinOutlineSlots);
+				ShowPieces (selectedBoosterOutlineSlots);
 
-			} else if (pieceTypeSelected == Constants.CONE) {
-				
-				// show all dashed pieces and selected cone pieces
-				ShowPieces (dashedBodyOutlineSlots);
-				ShowPieces (dashedBoosterOutlineSlots);
-				ShowPieces (selectedConeOutlineSlots);
-				ShowPieces (dashedFinOutlineSlots);
-
-				// hide all selected pieces and dashed cone pieces
-				HidePieces (selectedBodyOutlineSlots);
-				HidePieces (selectedBoosterOutlineSlots);
+			} else if (currentPieceTypeSelected == Constants.CONE) {
 				HidePieces (dashedConeOutlineSlots);
-				HidePieces (selectedFinOutlineSlots);
-
-			} else if (pieceTypeSelected == Constants.FIN) {
-
-				// show all dashed pieces and selected fin pieces
-				ShowPieces (dashedBodyOutlineSlots);
-				ShowPieces (dashedBoosterOutlineSlots);
-				ShowPieces (dashedConeOutlineSlots);
-				ShowPieces (selectedFinOutlineSlots);
-
-				// hide all selected pieces and dashed fin pieces
-				HidePieces (selectedBodyOutlineSlots);
-				HidePieces (selectedBoosterOutlineSlots);
-				HidePieces (selectedConeOutlineSlots);
+				ShowPieces (selectedConeOutlineSlots);
+			} else if (currentPieceTypeSelected == Constants.FIN) {
 				HidePieces (dashedFinOutlineSlots);
+				ShowPieces (selectedFinOutlineSlots);
 
 			}
 
