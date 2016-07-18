@@ -564,6 +564,24 @@ namespace BuildARocketGame {
 			UpdateRocketStats ();
 		}
 
+		void PieceRemoved (GameObject pieceToRemove) {
+			int removalIndex = -1;
+			for (var i = 0; i < piecesOnRocket.Count; i++) {
+				if (piecesOnRocket[i].name == pieceToRemove.name) {
+					removalIndex = i;
+					break;
+				}
+			}
+			if (removalIndex != -1) {
+				piecesOnRocket.RemoveAt (removalIndex);
+				rocketWeightInt -= pieceToRemove.GetComponent<RocketPieceInfo> ().weight;
+				rocketFuelInt -= pieceToRemove.GetComponent<RocketPieceInfo> ().fuel;
+				rocketAirResistanceInt -= pieceToRemove.GetComponent<RocketPieceInfo> ().airResistance;
+				rocketPowerInt -= pieceToRemove.GetComponent<RocketPieceInfo> ().power;
+				UpdateRocketStats ();
+			}
+		}
+
 		// used for debugging purposes only 
 		void printPieceList (List<GameObject> listToPrint) {
 			foreach (GameObject listItem in listToPrint) {
@@ -633,6 +651,9 @@ namespace BuildARocketGame {
 
 			// subscribe to the event that alerts the game manager of cloned pieces added to the panel
 			DragHandler.OnPieceClonedToPanel += PieceAddedToPanel;
+
+			// subscribe to the event that alerts the game manager of a deleted piece (via trash)
+			DragHandler.OnPieceRemovedByTrash += PieceRemoved;
 		}
 
 		void TriggerPanelChange (int selectedOutlineType) {

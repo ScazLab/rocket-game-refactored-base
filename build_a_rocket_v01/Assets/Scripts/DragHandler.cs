@@ -10,6 +10,9 @@ namespace BuildARocketGame {
 		public delegate void PieceClonedToPanel(GameObject pieceAdded);
 		public static event PieceClonedToPanel OnPieceClonedToPanel;
 
+		public delegate void PieceRemovedByTrash (GameObject pieceRemoved);
+		public static event PieceRemovedByTrash OnPieceRemovedByTrash;
+
 		public static GameObject itemBeingDragged; 
 		Vector3 startPosition;
 		Transform startParent;
@@ -58,9 +61,16 @@ namespace BuildARocketGame {
 	            transform.GetChild(0).tag = temp;
 			}
 
-			// if the piece's parent is not of the same type or if it's parent is the panel, 
+			// if a piece was dragged from the rocket to the trash
+			if (transform.parent.tag == "Trash" && startParent.tag != "PieceGrop") {
+				// remove the gameobject from any lists it's a part of in the game manager
+				OnPieceRemovedByTrash (gameObject);
+				// destroy it
+				Destroy (gameObject);
+			}
+			// if the piece's parent is not of the same type, if it's parent is the panel
 			// we send the piece back to where it came from
-			if (transform.parent == startParent || transform.tag != transform.parent.tag) {
+			else if (transform.parent == startParent || transform.tag != transform.parent.tag) {
 				transform.position = startPosition;
 				transform.SetParent (startParent);
 			}
