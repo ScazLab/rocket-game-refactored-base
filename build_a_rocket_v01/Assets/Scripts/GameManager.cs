@@ -23,10 +23,17 @@ namespace BuildARocketGame {
 
 
 		// Everything on the canvas that we'll be manipulating (lots of things) 
+		// the rocket stats
 		public GameObject weight;
 		public GameObject airResistance;
 		public GameObject power;
 		public GameObject fuel;
+
+		// and their corresponding integer values
+		private int rocketWeightInt;
+		private int rocketAirResistanceInt;
+		private int rocketPowerInt;
+		private int rocketFuelInt;
 
 		[SerializeField] Text gameOverText;
 		[SerializeField] Image overlayPanel;
@@ -43,22 +50,25 @@ namespace BuildARocketGame {
 		[SerializeField] GameObject toggleC;
 
 		// rocket pieces 
-		[SerializeField] GameObject[] bodyRocketPieces;
-		[SerializeField] GameObject[] boosterRocketPieces;
-		[SerializeField] GameObject[] coneRocketPieces;
-		[SerializeField] GameObject[] finRocketPieces;
+		[SerializeField] List<GameObject> bodyRocketPieces = new List<GameObject> ();
+		[SerializeField] List<GameObject> boosterRocketPieces = new List<GameObject> ();
+		[SerializeField] List<GameObject> coneRocketPieces = new List<GameObject> ();
+		[SerializeField] List<GameObject> finRocketPieces = new List<GameObject> ();
+
+		// rocekt pieces actually on the rocket
+		private List<GameObject> piecesOnRocket = new List<GameObject> ();
 
 		// selected outline pieces
-		[SerializeField] GameObject[] selectedBodyOutlineSlots; 
-		[SerializeField] GameObject[] selectedBoosterOutlineSlots; 
-		[SerializeField] GameObject[] selectedConeOutlineSlots;
-		[SerializeField] GameObject[] selectedFinOutlineSlots;  
+		[SerializeField] List<GameObject> selectedBodyOutlineSlots = new List<GameObject> (); 
+		[SerializeField] List<GameObject> selectedBoosterOutlineSlots = new List<GameObject> (); 
+		[SerializeField] List<GameObject> selectedConeOutlineSlots = new List<GameObject> ();
+		[SerializeField] List<GameObject> selectedFinOutlineSlots = new List<GameObject> ();  
 
 		// normal outline pieces
-		[SerializeField] GameObject[] dashedBodyOutlineSlots;
-		[SerializeField] GameObject[] dashedBoosterOutlineSlots;
-		[SerializeField] GameObject[] dashedConeOutlineSlots;
-		[SerializeField] GameObject[] dashedFinOutlineSlots;
+		[SerializeField] List<GameObject> dashedBodyOutlineSlots = new List<GameObject> ();
+		[SerializeField] List<GameObject> dashedBoosterOutlineSlots = new List<GameObject> ();
+		[SerializeField] List<GameObject> dashedConeOutlineSlots = new List<GameObject> ();
+		[SerializeField] List<GameObject> dashedFinOutlineSlots = new List<GameObject> ();
 
 		// the jets
 		[SerializeField] ParticleSystem bottomJet1;
@@ -181,6 +191,12 @@ namespace BuildARocketGame {
 			var audioSources = GetComponents<AudioSource> ();
 			audioSource1 = audioSources [0];
 			//audioSource2 = audioSources [1];
+
+			// initialize all of the rocket stats
+			rocketWeightInt = 0;
+			rocketFuelInt = 0;
+			rocketAirResistanceInt = 0;
+			rocketPowerInt = 0;
 		}
 		
 		void Start ()
@@ -189,6 +205,9 @@ namespace BuildARocketGame {
 
 			// hide all outline pieces so that we don't click them
 			HideAllOutlinePieces ();
+
+			// hide the timer
+			countdownTimer.enabled = false;
 		}
 		
 		// Update is called once per frame
@@ -468,7 +487,7 @@ namespace BuildARocketGame {
 			HidePieces (dashedFinOutlineSlots);
 		}
 
-		void HidePieces (GameObject[] pieces) {
+		void HidePieces (List<GameObject> pieces) {
 			foreach (GameObject piece in pieces) {
 				piece.GetComponent<Image> ().enabled = false;
 			}
@@ -481,6 +500,75 @@ namespace BuildARocketGame {
 			toggleT.SetActive (false);
 			toggleC.SetActive (false);
 			gameOverText.enabled = false;
+		}
+
+		void PieceAddedToPanel (GameObject pieceAdded) {
+			if (pieceAdded.tag == "Body") {
+				bodyRocketPieces.Add (pieceAdded);
+			} else if (pieceAdded.tag == "Engine") {
+				boosterRocketPieces.Add (pieceAdded);
+			} else if (pieceAdded.tag == "LeftFin" || pieceAdded.tag == "RightFin") {
+				finRocketPieces.Add (pieceAdded);
+			} else if (pieceAdded.tag == "TopCone") {
+				coneRocketPieces.Add (pieceAdded);
+			}
+		}
+
+		void PieceAddedToRocket (GameObject pieceAdded) {
+			// add the piece to the piecesOnRocket list
+			piecesOnRocket.Add (pieceAdded);
+
+			// and remove the piece from the current lists of rocket pieces
+			int removalIndex = -1;
+			if (pieceAdded.tag == "Body") {
+				for (var i = 0; i < bodyRocketPieces.Count; i++) {
+					if (pieceAdded.name == bodyRocketPieces [i].name) {
+						removalIndex = i;
+						break;
+					}
+				}
+				bodyRocketPieces.RemoveAt (removalIndex);
+			} else if (pieceAdded.tag == "RightFin" || pieceAdded.tag == "LeftFin") {
+				for (var i = 0; i < finRocketPieces.Count; i++) {
+					if (pieceAdded.name == finRocketPieces [i].name) {
+						removalIndex = i;
+						break;
+					}
+				}
+				finRocketPieces.RemoveAt (removalIndex);
+			} else if (pieceAdded.tag == "TopCone") {
+				for (var i = 0; i < coneRocketPieces.Count; i++) {
+					if (pieceAdded.name == coneRocketPieces [i].name) {
+						removalIndex = i;
+						break;
+					}
+				}
+				coneRocketPieces.RemoveAt (removalIndex);
+			} else if (pieceAdded.tag == "Engine") {
+				for (var i = 0; i < boosterRocketPieces.Count; i++) {
+					if (pieceAdded.name == boosterRocketPieces [i].name) {
+						removalIndex = i;
+						break;
+					}
+				}
+				boosterRocketPieces.RemoveAt (removalIndex);
+			}
+
+			// update the rocket stats
+			rocketWeightInt += pieceAdded.GetComponent<RocketPieceInfo> ().weight;
+			rocketFuelInt += pieceAdded.GetComponent<RocketPieceInfo> ().fuel;
+			rocketAirResistanceInt += pieceAdded.GetComponent<RocketPieceInfo> ().airResistance;
+			rocketPowerInt += pieceAdded.GetComponent<RocketPieceInfo> ().power;
+
+			// update the rocket stats on the display
+			UpdateRocketStats ();
+		}
+
+		// used for debugging purposes only 
+		void printPieceList (List<GameObject> listToPrint) {
+			foreach (GameObject listItem in listToPrint) {
+				Debug.Log (listItem.name);
+			}
 		}
 
 		// restarts the game for each trial
@@ -502,7 +590,7 @@ namespace BuildARocketGame {
 			}
 		}
 
-		void ShowPieces (GameObject[] pieces) {
+		void ShowPieces (List<GameObject> pieces) {
 			foreach (GameObject piece in pieces) {
 				piece.GetComponent<Image> ().enabled = true;
 			}
@@ -531,11 +619,20 @@ namespace BuildARocketGame {
 			// hide the UI elements 
 			HideUIElements ();
 
+			// show the timer
+			countdownTimer.enabled = true;
+
 			// show the outline pieces 
 			UpdateOutlineAndRocketPanelPieces ();
 
 			// subscribe to the event that indicates clicks on outline pieces
 			Slot.OnClickForPanelChange += TriggerPanelChange;
+
+			// subscribe to the event that alerts the game manager of pieces added to the rocket
+			Slot.OnPieceAddedToRocket += PieceAddedToRocket;
+
+			// subscribe to the event that alerts the game manager of cloned pieces added to the panel
+			DragHandler.OnPieceClonedToPanel += PieceAddedToPanel;
 		}
 
 		void TriggerPanelChange (int selectedOutlineType) {
@@ -622,6 +719,13 @@ namespace BuildARocketGame {
 
 			}
 
+		}
+
+		void UpdateRocketStats () {
+			weight.GetComponent<Text> ().text = rocketWeightInt.ToString ();
+			fuel.GetComponent<Text> ().text = rocketFuelInt.ToString ();
+			airResistance.GetComponent<Text> ().text = rocketAirResistanceInt.ToString ();
+			power.GetComponent<Text> ().text = rocketPowerInt.ToString ();
 		}
 			
 	}

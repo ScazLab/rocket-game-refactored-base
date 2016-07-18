@@ -10,6 +10,9 @@ namespace BuildARocketGame {
 		public delegate void ClickForPanelChange(int pieceType);
 		public static event ClickForPanelChange OnClickForPanelChange; 
 
+		public delegate void PieceAddedToRocket(GameObject pieceAdded);
+		public static event PieceAddedToRocket OnPieceAddedToRocket;
+
 		public bool isDashedOutlinePiece;
 
 		public GameObject item {
@@ -25,11 +28,17 @@ namespace BuildARocketGame {
 		public void OnDrop (PointerEventData eventData)
 		{
 			if (!item) {
+				// set the parent in the heirarchy to be the selected outline pieces that contains the rocket piece
 				DragHandler.itemBeingDragged.transform.SetParent (transform);
+
+				/* Note: pieces 'snap' to their slots as a result of having a horizontal layout group
+			 	 *       on the selected outline piece that they're moving to	*/
+
+				//Debug.Log ("End of drop: " + DragHandler.itemBeingDragged.name + " - to - " + gameObject.name);
+
+				// If a piece has been dragged successfully, we'll let the game manager know
+				OnPieceAddedToRocket (DragHandler.itemBeingDragged);
 			}
-				
-			/* Note: pieces 'snap' to their slots as a result of having a horizontal layout group
-			 *       on the selected outline piece that they're moving to	*/
 		}
 		#endregion
 

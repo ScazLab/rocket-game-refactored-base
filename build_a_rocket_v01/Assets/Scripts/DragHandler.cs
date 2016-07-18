@@ -7,9 +7,13 @@ namespace BuildARocketGame {
 
 	public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler {
 
+		public delegate void PieceClonedToPanel(GameObject pieceAdded);
+		public static event PieceClonedToPanel OnPieceClonedToPanel;
+
 		public static GameObject itemBeingDragged; 
 		Vector3 startPosition;
 		Transform startParent;
+		Vector3 startScale;
 
 		#region IBeginDragHandler implementation
 
@@ -18,6 +22,7 @@ namespace BuildARocketGame {
 			itemBeingDragged = gameObject;
 			startPosition = transform.position;
 			startParent = transform.parent;
+			startScale = transform.localScale;
 			// allows us to pass events from what's being dragged to the events behind it
 			GetComponent<CanvasGroup> ().blocksRaycasts = false; 
 	        
@@ -55,10 +60,21 @@ namespace BuildARocketGame {
 
 			// if the piece's parent is not of the same type or if it's parent is the panel, 
 			// we send the piece back to where it came from
-			if (transform.parent == startParent || transform.tag != transform.parent.tag)
-			{
+			if (transform.parent == startParent || transform.tag != transform.parent.tag) {
 				transform.position = startPosition;
-				transform.parent = startParent;
+				transform.SetParent (startParent);
+			}
+			// otherwise, we clone the piece and put a new one in the panel in place of the old one
+			// as long as the parent is the panel
+			else if (startParent.tag == "PieceGroup") {
+				GameObject clone = Instantiate (gameObject);
+				clone.transform.position = startPosition;
+				clone.transform.SetParent (startParent);
+				clone.transform.localScale = startScale;
+				clone.transform.tag = gameObject.transform.tag;
+
+				// let the game manager know that we've cloned a new piece
+				OnPieceClonedToPanel (clone);
 			}
 		}
 
