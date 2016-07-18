@@ -17,6 +17,7 @@ namespace BuildARocketGame {
 		Vector3 startPosition;
 		Transform startParent;
 		Vector3 startScale;
+		int startSiblingIndex;
 
 		#region IBeginDragHandler implementation
 
@@ -26,6 +27,7 @@ namespace BuildARocketGame {
 			startPosition = transform.position;
 			startParent = transform.parent;
 			startScale = transform.localScale;
+			startSiblingIndex = transform.GetSiblingIndex();
 			// allows us to pass events from what's being dragged to the events behind it
 			GetComponent<CanvasGroup> ().blocksRaycasts = false; 
 	        
@@ -80,6 +82,7 @@ namespace BuildARocketGame {
 				GameObject clone = Instantiate (gameObject);
 				clone.transform.position = startPosition;
 				clone.transform.SetParent (startParent);
+				clone.transform.SetSiblingIndex (startSiblingIndex); // puts the cloned piece in the correct spot in the panel
 				clone.transform.localScale = startScale;
 				clone.transform.tag = gameObject.transform.tag;
 
