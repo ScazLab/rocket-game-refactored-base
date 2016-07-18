@@ -38,6 +38,7 @@ namespace BuildARocketGame {
 		[SerializeField] Text gameOverText;
 		[SerializeField] Image overlayPanel;
 		[SerializeField] GameObject resultsPanel;
+		[SerializeField] GameObject statsPanel;
 		[SerializeField] List<GameObject> trialResults;
 
 		[SerializeField] Text distanceText;
@@ -205,6 +206,9 @@ namespace BuildARocketGame {
 
 			// hide all outline pieces so that we don't click them
 			HideAllOutlinePieces ();
+
+			// hide the results panel
+			statsPanel.SetActive (false);
 
 			// hide the timer
 			countdownTimer.enabled = false;
@@ -534,7 +538,11 @@ namespace BuildARocketGame {
 
 		void LaunchRocket () {
 			Debug.Log ("Launch rocket!");
+			// indicate that we've launched
 			launched = true;
+
+			// hide all of the UI elements that we don't want
+
 		}
 
 		// This is our cue to hide the old pieces on the panels and show the new ones
@@ -712,6 +720,9 @@ namespace BuildARocketGame {
 
 			// show the outline pieces 
 			UpdateOutlineAndRocketPanelPieces ();
+
+			// show the stats panel
+			statsPanel.SetActive (true);
 
 			// subscribe to the event that indicates clicks on outline pieces
 			Slot.OnClickForPanelChange += TriggerPanelChange;
