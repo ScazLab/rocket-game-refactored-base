@@ -13,6 +13,9 @@ namespace BuildARocketGame {
 		public delegate void PieceRemovedByTrash (GameObject pieceRemoved);
 		public static event PieceRemovedByTrash OnPieceRemovedByTrash;
 
+		public delegate void PieceDroppedOnQuestionMark (GameObject pieceDropped);
+		public static event PieceDroppedOnQuestionMark OnPieceDroppedOnQuestionMark;
+
 		public static GameObject itemBeingDragged; 
 		Vector3 startPosition;
 		Transform startParent;
@@ -70,9 +73,14 @@ namespace BuildARocketGame {
 				// destroy it
 				Destroy (gameObject);
 			}
-			// if the piece's parent is not of the same type, if it's parent is the panel
+			// if the piece's parent is not of the same type or if it's parent is the panel
 			// we send the piece back to where it came from
 			else if (transform.parent == startParent || transform.tag != transform.parent.tag) {
+				// if the piece's parent is the question mark (if the user dragged and dropped a piece onto the question mark
+				// we make an utterance related to that piece, and then send it back to where it came from
+				if (transform.parent.tag == "QuestionMark") {
+					OnPieceDroppedOnQuestionMark (gameObject);
+				}
 				transform.position = startPosition;
 				transform.SetParent (startParent);
 			}

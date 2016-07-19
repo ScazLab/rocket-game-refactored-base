@@ -44,6 +44,7 @@ namespace BuildARocketGame {
 		[SerializeField] Text distanceText;
 		[SerializeField] Text milesText;
 		[SerializeField] GameObject timer;
+		[SerializeField] GameObject questionMark;
 
 		[SerializeField] GameObject startButton;
 		[SerializeField] GameObject toggleR;
@@ -152,10 +153,6 @@ namespace BuildARocketGame {
 				gameOverText.enabled = false;
 			}
 
-			// show the question mark
-			GameObject questionMark = GameObject.Find("QuestionArea");
-			questionMark.GetComponent<SpriteRenderer> ().enabled = true;
-
 			// initialize all of the emission modules
 			bottomJetEmission1 = bottomJet1.emission;
 			bottomJetEmission2 = bottomJet2.emission;
@@ -207,11 +204,14 @@ namespace BuildARocketGame {
 			// hide all outline pieces so that we don't click them
 			HideAllOutlinePieces ();
 
-			// hide the results panel
+			// hide the rocket stats panel
 			statsPanel.SetActive (false);
 
 			// hide the timer
 			countdownTimer.enabled = false;
+
+			// hide the question mark
+			questionMark.SetActive (false);
 		}
 
 		// Update is called once per frame
@@ -636,6 +636,12 @@ namespace BuildARocketGame {
 			UpdateRocketStats ();
 		}
 
+		void PieceDroppedOnQuestionMark (GameObject pieceDropped) {
+			if (sendThalamusMsgs) {
+				thalamusUnity.Publisher.SentFromUnityToThalamus ("pieceQuestion*" + pieceDropped.name);
+			}
+		}
+
 		void PieceRemoved (GameObject pieceToRemove) {
 			int removalIndex = -1;
 			for (var i = 0; i < piecesOnRocket.Count; i++) {
@@ -724,6 +730,9 @@ namespace BuildARocketGame {
 			// show the stats panel
 			statsPanel.SetActive (true);
 
+			// show the question mark 
+			questionMark.SetActive (true);
+
 			// subscribe to the event that indicates clicks on outline pieces
 			Slot.OnClickForPanelChange += TriggerPanelChange;
 
@@ -738,6 +747,9 @@ namespace BuildARocketGame {
 
 			// subscribe to the event that alerts the game manager of the panel going in
 			PanelAnimationEventHandler.OnTriggerPanelIn += PanelIn;
+
+			// subscribe to the event that alerts the game manager of a piece dropped on a question mark
+			DragHandler.OnPieceDroppedOnQuestionMark += PieceDroppedOnQuestionMark;
 		}
 
 		void StopDragAndDropGameplay () {
@@ -748,6 +760,7 @@ namespace BuildARocketGame {
 			DragHandler.OnPieceClonedToPanel -= PieceAddedToPanel;
 			DragHandler.OnPieceRemovedByTrash -= PieceRemoved;
 			PanelAnimationEventHandler.OnTriggerPanelIn -= PanelIn;
+			DragHandler.OnPieceDroppedOnQuestionMark -= PieceDroppedOnQuestionMark;
 		}
 
 		void TriggerPanelChange (int selectedOutlineType) {

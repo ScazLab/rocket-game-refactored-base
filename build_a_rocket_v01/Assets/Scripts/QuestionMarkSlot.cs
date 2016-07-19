@@ -2,10 +2,8 @@
 using System.Collections;
 using UnityEngine.EventSystems;
 
-
 namespace BuildARocketGame {
-
-	public class TrashSlot : MonoBehaviour, IDropHandler {
+	public class QuestionMarkSlot : MonoBehaviour, IDropHandler {
 
 		public GameObject item {
 			get {
@@ -22,7 +20,6 @@ namespace BuildARocketGame {
 			if (!item) {
 				// set the parent in the heirarchy to be the selected outline pieces that contains the rocket piece
 				DragHandler.itemBeingDragged.transform.SetParent (transform);
-
 			}
 		}
 		#endregion
