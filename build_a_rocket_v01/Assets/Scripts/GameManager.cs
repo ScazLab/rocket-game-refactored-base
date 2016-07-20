@@ -93,6 +93,9 @@ namespace BuildARocketGame {
 		public Animator rightPanelAnimator;
 		private bool firstStateChangeOccured = false;
 
+		// animator for the foreground
+		public Animator foregroundAnimator;
+
 		// sounds being used
 		public AudioClip countdownBeep;
 		public AudioClip liftoffSound;
@@ -105,6 +108,8 @@ namespace BuildARocketGame {
 		private int currentPieceTypeSelected;
 		private int lastPieceTypeSelected;
 
+		// timing private variables used in the update function
+		private float launchDuration = 0f;
 		private float timeElapsed = 0f;
 		private float timeElapsed2 = 0f;
 		private float remainingTime = 0f;
@@ -114,6 +119,7 @@ namespace BuildARocketGame {
 		private TimeSpan t_timer_start;
 
 		private bool launched = false;
+		private bool stoppedLaunch = false;
 		private float alphaSet = 0f;
 
 		private int distance = 0;
@@ -169,10 +175,6 @@ namespace BuildARocketGame {
 			rightJetEmission.enabled = false;
 			leftJetEmission.enabled = false;
 
-			// show the distance stats
-			distanceText.enabled = false;
-			milesText.enabled = false;
-
 			fov =  Camera.main.orthographicSize;
 			doOnce = false;
 			
@@ -212,6 +214,10 @@ namespace BuildARocketGame {
 
 			// hide the question mark
 			questionMark.SetActive (false);
+
+			// hide the distance stats
+			distanceText.enabled = false;
+			milesText.enabled = false;
 		}
 
 		// Update is called once per frame
@@ -236,8 +242,19 @@ namespace BuildARocketGame {
 				}
 				// if we haven't launched and time has expired - launch!!
 				else if (!launched) {
-					LaunchRocket ();
+					// calculate the distance the rocket should go 
+					distance = calculateDistance();
+
+					// calculate the time that the rocket will launch in the game
+					launchDuration = (float)distance / 20.0f;
+
+					// launch the rocket
+					StartRocketLaunch ();
 				} 
+				// stop the launch after the specified launchDuration has ended
+				else if (((rocketBuildingPhaseDuration + launchDuration) - timeElapsed) < 0.0 && !stoppedLaunch) {
+					StopRocketLaunch ();
+				}
 
 				// increment the time elapsed
 				timeElapsed += Time.deltaTime;
@@ -492,6 +509,47 @@ namespace BuildARocketGame {
 //			}
 //		}
 
+		//calculates how far the rocket should go
+		public int calculateDistance() {
+
+			List<int> rocketPieceTypes = countNumBodyPieceTypes (piecesOnRocket);
+			int numConePieces = rocketPieceTypes [0];
+			int numBodyPieces = rocketPieceTypes [1];
+			int numBoosterPieces = rocketPieceTypes [2];
+			int numFinPieces = rocketPieceTypes [3];
+
+			// when penalizing missing pieces, we'll penalize the cone and fin pieces 3 times as much
+			float penalty = (float)(numConePieces * 3 + numBodyPieces + numBoosterPieces + numFinPieces * 3) / (float)(1 * 3 + 16 + 4 + 2 * 3);
+
+			float distanceTemp = (float)((-1.0 * ((float)rocketAirResistanceInt + 1.5 * (float)rocketWeightInt) + (float)rocketFuelInt + ((float)rocketFuelInt * (float)rocketPowerInt) * 0.002 + 250.0) * (penalty));
+
+			if (distanceTemp < 0 || rocketFuelInt == 0 || numBoosterPieces == 0) {
+				return 0;
+			} else {
+				return (int)distanceTemp;
+			}
+		}
+
+		List<int> countNumBodyPieceTypes (List<GameObject> pieces)
+		{
+			// piece types
+			int conePieces = 0;
+			int bodyPieces = 0;
+			int boosterPieces = 0;
+			int finPieces = 0;
+
+			foreach (GameObject piece in pieces) {
+				if (piece.tag == "TopCone") conePieces++;
+				else if (piece.tag == "Body") bodyPieces++;
+				else if (piece.tag == "Engine") boosterPieces++;
+				else if (piece.tag == "RightFin" || piece.tag == "LeftFin") finPieces++;
+			}
+
+			// add them to the output list
+			List<int> output = new List<int> () {conePieces, bodyPieces, boosterPieces, finPieces};
+			return output;
+		}
+
 		string FormatTime(float value) {
 			TimeSpan t = TimeSpan.FromSeconds (value);
 			return string.Format("{0:D2}:{1:D2}", t.Minutes, t.Seconds);
@@ -534,15 +592,6 @@ namespace BuildARocketGame {
 			toggleT.SetActive (false);
 			toggleC.SetActive (false);
 			gameOverText.enabled = false;
-		}
-
-		void LaunchRocket () {
-			Debug.Log ("Launch rocket!");
-			// indicate that we've launched
-			launched = true;
-
-			// hide all of the UI elements that we don't want
-
 		}
 
 		// This is our cue to hide the old pieces on the panels and show the new ones
@@ -752,6 +801,64 @@ namespace BuildARocketGame {
 			DragHandler.OnPieceDroppedOnQuestionMark += PieceDroppedOnQuestionMark;
 		}
 
+		void StartRocketLaunch () {
+			Debug.Log ("Launch rocket!");
+			// indicate that we've launched
+			launched = true;
+
+			// hide all of the UI elements that we don't want
+			statsPanel.SetActive (false);
+			questionMark.SetActive (false);
+			countdownTimer.enabled = false;
+
+			// hide all of the outline pieces
+			HidePieces(dashedBodyOutlineSlots);
+			HidePieces (dashedBoosterOutlineSlots);
+			HidePieces (dashedConeOutlineSlots);
+			HidePieces (dashedFinOutlineSlots);
+			HidePieces (selectedBodyOutlineSlots);
+			HidePieces (selectedBoosterOutlineSlots);
+			HidePieces (selectedConeOutlineSlots);
+			HidePieces (selectedFinOutlineSlots);
+
+			// trigger the animations to hide the side panels and the ground
+			leftPanelAnimator.SetTrigger ("stateChangeTriggerLeft");
+			rightPanelAnimator.SetTrigger ("stateChangeTriggerRight");
+			leftPanelAnimator.SetBool ("stateChangeTriggerTakeoff", true);
+			rightPanelAnimator.SetBool ("stateChangeTriggerTakeoff", true);
+			foregroundAnimator.SetTrigger ("TriggerLaunch");
+
+			// show the distance stats
+			distanceText.enabled = true;
+			milesText.enabled = true;
+
+			// set the clip of audioSource2 to the liftoff sound
+			audioSource1.clip = liftoffSound;
+
+			// start the liftoff sound
+			audioSource1.Play ();
+
+			// enable the jets for the relevant fin/booster pieces
+			bottomJetEmission1.enabled = true;
+			bottomJetEmission2.enabled = true;
+			bottomJetEmission3.enabled = true;
+			bottomJetEmission4.enabled = true;
+
+			// enable the jet liftoff animation if we have the engine or propeller fins
+			foreach (GameObject piece in piecesOnRocket) {
+				if (piece.name.Contains ("fin_Engine") || piece.name.Contains ("fin_Propeller")) {
+					// if it's on the left side
+					if (piece.transform.position.x < 0) {
+						leftJetEmission.enabled = true;
+					} 
+					// or if it's on the right side 
+					else {
+						rightJetEmission.enabled = true;
+					}
+				}
+			}
+		}
+
 		void StopDragAndDropGameplay () {
 
 			// unsubscribe from all events
@@ -761,6 +868,22 @@ namespace BuildARocketGame {
 			DragHandler.OnPieceRemovedByTrash -= PieceRemoved;
 			PanelAnimationEventHandler.OnTriggerPanelIn -= PanelIn;
 			DragHandler.OnPieceDroppedOnQuestionMark -= PieceDroppedOnQuestionMark;
+		}
+
+		void StopRocketLaunch () {
+			Debug.Log ("Stop rocket");
+			stoppedLaunch = true;
+
+			// stop the liftoff sound
+			audioSource1.Stop ();
+
+			// disable the jets for the relevant fin/booster pieces
+			bottomJetEmission1.enabled = false;
+			bottomJetEmission2.enabled = false;
+			bottomJetEmission3.enabled = false;
+			bottomJetEmission4.enabled = false;
+			leftJetEmission.enabled = false;
+			rightJetEmission.enabled = false;
 		}
 
 		void TriggerPanelChange (int selectedOutlineType) {
