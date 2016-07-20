@@ -12,15 +12,15 @@ namespace BuildARocketGame {
 
 		public bool sendThalamusMsgs = false;
 
+		// saved variables game object
+		public SavedVariables savedVariables;
+
 		public Text countdownTimer;
 		public float rocketBuildingPhaseDuration = 120f; // time in seconds
 		public float pausePhaseDuration = 30f;
 
 		// Values dependent on the number of trials
 		public int totalTrialsNumber = 7;
-		private List<int> distanceVals = new List<int> () {-1, -1, -1, -1, -1, -1, -1};
-		private List<int> oldDistanceVals = new List<int> () {-1, -1, -1, -1, -1, -1, -1};
-
 
 		// Everything on the canvas that we'll be manipulating (lots of things) 
 		// the rocket stats
@@ -100,16 +100,9 @@ namespace BuildARocketGame {
 		public AudioClip countdownBeep;
 		public AudioClip liftoffSound;
 
-		// if the game state bools
-		public bool gameStarted = false;
-		public bool paused = false;
-
 		// type of piece selected
 		private int currentPieceTypeSelected;
 		private int lastPieceTypeSelected;
-
-		// trial number we're on
-		private int trialNum;
 
 		// timing private variables used in the update function
 		private float launchDuration = 0f;
@@ -140,18 +133,8 @@ namespace BuildARocketGame {
 		private ThalamusUnity thalamusUnity;
 
 		void Awake () {
-			var saved = GameObject.Find ("SavedVariables").GetComponent<SavedVariables> ();
 
-			for (int i = 0; i < oldDistanceVals.Count; i++) {
-				distanceVals[i] = saved.distanceVals[i];
-			}
-
-			trialNum = saved.trialNumber;
-
-			gameStarted = saved.gameStarted;
-			// gameStarted = true; // DEMO CHANGE
-
-			if (gameStarted) {
+			if (savedVariables.gameStarted) {
 				HideUIElements ();
 			} else {
 				gameOverText.enabled = false;
@@ -223,7 +206,7 @@ namespace BuildARocketGame {
 
 		// Update is called once per frame
 		void Update () {
-			if (gameStarted) {
+			if (savedVariables.gameStarted) {
 
 				// if the rocket building phase has not yet ended
 				remainingTime = rocketBuildingPhaseDuration - timeElapsed;
@@ -264,21 +247,35 @@ namespace BuildARocketGame {
 					StopRocketLaunch ();
 
 					// update the results array
-					distanceVals[trialNum - 1] = calculatedDistance;
+					savedVariables.distanceVals[savedVariables.trialNumber - 1] = calculatedDistance;
 
 					// change the results text to match what's in the distance results array
 					for (int i = 0; i < resultsPanel.transform.childCount; i++) {
-						resultsPanel.transform.GetChild (i).GetChild (1).gameObject.GetComponent<Text> ().text = distanceVals [i].ToString ();
+						resultsPanel.transform.GetChild (i).GetChild (1).gameObject.GetComponent<Text> ().text = savedVariables.distanceVals [i].ToString ();
 					}
 
 					// show the results 
 					resultsPanel.SetActive (true);
 					for (int i = 0; i < resultsPanel.transform.childCount; i++) {
-						if (i <= (trialNum - 1)) {
+						if (i <= (savedVariables.trialNumber - 1)) {
 							resultsPanel.transform.GetChild(i).gameObject.SetActive (true);
 						} else {
 							resultsPanel.transform.GetChild(i).gameObject.SetActive (false);
 						}
+					}
+
+					// send the results to Thalamus
+					string resultsString = "results*";
+					for (int i = 0; i < savedVariables.distanceVals.Count; i++)
+					{
+						resultsString = resultsString + savedVariables.distanceVals[i].ToString();
+						if (i != (savedVariables.distanceVals.Count - 1))
+						{
+							resultsString = resultsString + "*";
+						}
+					}
+					if (sendThalamusMsgs) {
+						thalamusUnity.Publisher.SentFromUnityToThalamus (resultsString);
 					}
 				}
 				// if we have started the launch, but haven't finished it yet, update the miles
@@ -775,7 +772,7 @@ namespace BuildARocketGame {
 
 		public void StartGame() {
 			
-			gameStarted = true;
+			savedVariables.gameStarted = true;
 
 			// send the condition selected to Thalamus 
 			if (toggleR.GetComponent<Toggle> ().isOn) {
