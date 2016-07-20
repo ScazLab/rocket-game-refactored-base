@@ -41,8 +41,8 @@ namespace BuildARocketGame {
 		[SerializeField] GameObject statsPanel;
 		[SerializeField] List<GameObject> trialResults;
 
-		[SerializeField] Text distanceText;
-		[SerializeField] Text milesText;
+		[SerializeField] Text milesNumText;
+		[SerializeField] Text milesLabelText;
 		[SerializeField] GameObject timer;
 		[SerializeField] GameObject questionMark;
 
@@ -108,30 +108,26 @@ namespace BuildARocketGame {
 		private int currentPieceTypeSelected;
 		private int lastPieceTypeSelected;
 
+		// trial number we're on
+		private int trialNum;
+
 		// timing private variables used in the update function
 		private float launchDuration = 0f;
 		private float timeElapsed = 0f;
-		private float timeElapsed2 = 0f;
 		private float remainingTime = 0f;
 		private int remainingTimeSec = 0;
-		private float remainingTime2 = 0f;
-		private int remainingTimeSec2 = 0;
-		private TimeSpan t_timer_start;
 
 		private bool launched = false;
 		private bool stoppedLaunch = false;
-		private float alphaSet = 0f;
 
-		private int distance = 0;
-		private int maxDistance;
+		private int currentDistance;
+		private int calculatedDistance;
 
 		private float fov;
 
 		public bool canRestart = false;
 
 		private bool doOnce;
-
-		private Vector3 timerSavePosition;
 
 		// audio source for sound effects
 		private AudioSource audioSource1;
@@ -149,6 +145,8 @@ namespace BuildARocketGame {
 			for (int i = 0; i < oldDistanceVals.Count; i++) {
 				distanceVals[i] = saved.distanceVals[i];
 			}
+
+			trialNum = saved.trialNumber;
 
 			gameStarted = saved.gameStarted;
 			// gameStarted = true; // DEMO CHANGE
@@ -216,8 +214,11 @@ namespace BuildARocketGame {
 			questionMark.SetActive (false);
 
 			// hide the distance stats
-			distanceText.enabled = false;
-			milesText.enabled = false;
+			milesNumText.enabled = false;
+			milesLabelText.enabled = false;
+
+			// hide the results panel
+			resultsPanel.SetActive (false);
 		}
 
 		// Update is called once per frame
@@ -243,17 +244,48 @@ namespace BuildARocketGame {
 				// if we haven't launched and time has expired - launch!!
 				else if (!launched) {
 					// calculate the distance the rocket should go 
-					distance = calculateDistance();
+					calculatedDistance = calculateDistance ();
+					Debug.Log ("calculatedDistance: " + calculatedDistance.ToString ());
 
 					// calculate the time that the rocket will launch in the game
-					launchDuration = (float)distance / 20.0f;
+					launchDuration = (float)calculatedDistance / 20.0f;
+					Debug.Log ("launchDuration: " + launchDuration.ToString ());
+
+					// set the current rocket distance to 0
+					currentDistance = 0;
+					milesNumText.text = currentDistance.ToString ();
 
 					// launch the rocket
 					StartRocketLaunch ();
-				} 
+				}
 				// stop the launch after the specified launchDuration has ended
 				else if (((rocketBuildingPhaseDuration + launchDuration) - timeElapsed) < 0.0 && !stoppedLaunch) {
+					// stop the launch
 					StopRocketLaunch ();
+
+					// update the results array
+					distanceVals[trialNum - 1] = calculatedDistance;
+
+					// change the results text to match what's in the distance results array
+					for (int i = 0; i < resultsPanel.transform.childCount; i++) {
+						resultsPanel.transform.GetChild (i).GetChild (1).gameObject.GetComponent<Text> ().text = distanceVals [i].ToString ();
+					}
+
+					// show the results 
+					resultsPanel.SetActive (true);
+					for (int i = 0; i < resultsPanel.transform.childCount; i++) {
+						if (i <= (trialNum - 1)) {
+							resultsPanel.transform.GetChild(i).gameObject.SetActive (true);
+						} else {
+							resultsPanel.transform.GetChild(i).gameObject.SetActive (false);
+						}
+					}
+				}
+				// if we have started the launch, but haven't finished it yet, update the miles
+				else if (launched && !stoppedLaunch) {
+					float launchTimeElapsedRatio = (timeElapsed - rocketBuildingPhaseDuration) / launchDuration;
+					currentDistance = (int)(launchTimeElapsedRatio * (float)calculatedDistance);
+					milesNumText.text = currentDistance.ToString ();
 				}
 
 				// increment the time elapsed
@@ -829,8 +861,8 @@ namespace BuildARocketGame {
 			foregroundAnimator.SetTrigger ("TriggerLaunch");
 
 			// show the distance stats
-			distanceText.enabled = true;
-			milesText.enabled = true;
+			milesNumText.enabled = true;
+			milesLabelText.enabled = true;
 
 			// set the clip of audioSource2 to the liftoff sound
 			audioSource1.clip = liftoffSound;
