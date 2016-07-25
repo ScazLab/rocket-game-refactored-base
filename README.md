@@ -24,6 +24,7 @@ The rocket distance (*D*) is calculated with the following formula: *D = p (α<s
 - The pieces don't always size correctly when put into their slots. 
 - The results panel's stats change location each round as each round's stats are added. 
 - There are always 4 jet emissions under each booster slot whether or not boosters are present. 
+- When we build the game, everything is not placed properly (problems with the dimensions of the screen in build)
 
 ## Guide to the code
 This section provides a breif overview of the organization of the code. 
