@@ -1,9 +1,10 @@
-﻿using UnityEngine;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using System;
 
 
 namespace BuildARocketGame {
@@ -16,8 +17,8 @@ namespace BuildARocketGame {
 		public SavedVariables savedVariables;
 
 		public Text countdownTimer;
-		public float rocketBuildingPhaseDuration = 120f; // time in seconds
-		public float pausePhaseDuration = 30f;
+		public float rocketBuildingPhaseDuration; // time in seconds
+		public float pausePhaseDuration;
 
 		// Values dependent on the number of trials
 		public int totalTrialsNumber = 7;
@@ -108,33 +109,31 @@ namespace BuildARocketGame {
 		private float launchDuration = 0f;
 		private float timeElapsed = 0f;
 		private float remainingTime = 0f;
-		private int remainingTimeSec = 0;
+		private int remainingBuildTimeSec = 0;
 
 		private bool launched = false;
 		private bool stoppedLaunch = false;
+		private bool gameOver = false;
 
 		private int currentDistance;
 		private int calculatedDistance;
 
-		private float fov;
+		private bool gameStarted;
 
-		public bool canRestart = false;
+		private List<int> distanceVals = new List<int> () {-1, -1, -1, -1, -1, -1, -1};
 
-		private bool doOnce;
+		private int trialNumber = 1;
 
 		// audio source for sound effects
 		private AudioSource audioSource1;
 		private AudioSource audioSource2;
-
-		// animator for the results panel
-		private Animator resultsAnimator;
 
 		// the object used to send all the messages to Thalamus
 		private ThalamusUnity thalamusUnity;
 
 		void Awake () {
 
-			if (savedVariables.gameStarted) {
+			if (gameStarted) {
 				HideUIElements ();
 			} else {
 				gameOverText.enabled = false;
@@ -155,9 +154,6 @@ namespace BuildARocketGame {
 			bottomJetEmission4.enabled = false;
 			rightJetEmission.enabled = false;
 			leftJetEmission.enabled = false;
-
-			fov =  Camera.main.orthographicSize;
-			doOnce = false;
 			
 			// initialize the thalamusUnity object
 			if (sendThalamusMsgs) {
@@ -182,8 +178,6 @@ namespace BuildARocketGame {
 		
 		void Start ()
 		{
-			resultsAnimator = resultsPanel.GetComponent<Animator> ();
-
 			// hide all outline pieces so that we don't click them
 			HideAllOutlinePieces ();
 
@@ -206,20 +200,20 @@ namespace BuildARocketGame {
 
 		// Update is called once per frame
 		void Update () {
-			if (savedVariables.gameStarted) {
-
+			
+			if (gameStarted) {
 				// if the rocket building phase has not yet ended
-				remainingTime = rocketBuildingPhaseDuration - timeElapsed;
-				if (remainingTime > 0.0) {
+				remainingTime = (rocketBuildingPhaseDuration + pausePhaseDuration) - timeElapsed;
+				if ((remainingTime - pausePhaseDuration) > 0.0) {
 					// only update when a second has elapsed
-					if (GetSeconds (remainingTime) != remainingTimeSec) {
+					if (GetSeconds (remainingTime - pausePhaseDuration) != remainingBuildTimeSec) {
 						// get remaining seconds
-						remainingTimeSec = GetSeconds (remainingTime);
+						remainingBuildTimeSec = GetSeconds (remainingTime - pausePhaseDuration);
 						// set the timer text
-						SetCountdownTimerText (remainingTimeSec);
+						SetCountdownTimerText (remainingBuildTimeSec);
 						// play the beeping sound if it's 5,4,3,2,1 seconds left
-						if (remainingTimeSec == 1 || remainingTimeSec == 2 || remainingTimeSec == 3 ||
-						    remainingTimeSec == 4 || remainingTimeSec == 5) {
+						if (remainingBuildTimeSec == 1 || remainingBuildTimeSec == 2 || remainingBuildTimeSec == 3 ||
+							remainingBuildTimeSec == 4 || remainingBuildTimeSec == 5) {
 							audioSource1.PlayOneShot (countdownBeep, 1F);
 						}
 					}
@@ -228,11 +222,9 @@ namespace BuildARocketGame {
 				else if (!launched) {
 					// calculate the distance the rocket should go 
 					calculatedDistance = calculateDistance ();
-					Debug.Log ("calculatedDistance: " + calculatedDistance.ToString ());
 
 					// calculate the time that the rocket will launch in the game
 					launchDuration = (float)calculatedDistance / 20.0f;
-					Debug.Log ("launchDuration: " + launchDuration.ToString ());
 
 					// set the current rocket distance to 0
 					currentDistance = 0;
@@ -247,17 +239,17 @@ namespace BuildARocketGame {
 					StopRocketLaunch ();
 
 					// update the results array
-					savedVariables.distanceVals[savedVariables.trialNumber - 1] = calculatedDistance;
+					distanceVals[trialNumber - 1] = calculatedDistance;
 
 					// change the results text to match what's in the distance results array
 					for (int i = 0; i < resultsPanel.transform.childCount; i++) {
-						resultsPanel.transform.GetChild (i).GetChild (1).gameObject.GetComponent<Text> ().text = savedVariables.distanceVals [i].ToString ();
+						resultsPanel.transform.GetChild (i).GetChild (1).gameObject.GetComponent<Text> ().text = distanceVals [i].ToString ();
 					}
 
 					// show the results 
 					resultsPanel.SetActive (true);
 					for (int i = 0; i < resultsPanel.transform.childCount; i++) {
-						if (i <= (savedVariables.trialNumber - 1)) {
+						if (i <= (trialNumber - 1)) {
 							resultsPanel.transform.GetChild(i).gameObject.SetActive (true);
 						} else {
 							resultsPanel.transform.GetChild(i).gameObject.SetActive (false);
@@ -266,10 +258,10 @@ namespace BuildARocketGame {
 
 					// send the results to Thalamus
 					string resultsString = "results*";
-					for (int i = 0; i < savedVariables.distanceVals.Count; i++)
+					for (int i = 0; i < distanceVals.Count; i++)
 					{
-						resultsString = resultsString + savedVariables.distanceVals[i].ToString();
-						if (i != (savedVariables.distanceVals.Count - 1))
+						resultsString = resultsString + distanceVals[i].ToString();
+						if (i != (distanceVals.Count - 1))
 						{
 							resultsString = resultsString + "*";
 						}
@@ -284,259 +276,47 @@ namespace BuildARocketGame {
 					currentDistance = (int)(launchTimeElapsedRatio * (float)calculatedDistance);
 					milesNumText.text = currentDistance.ToString ();
 				}
+				// if the trial has concluded (build + pause phases have ended)
+				else if (remainingTime <= 0.0 && !gameOver) {
+					// game over
+					if (trialNumber == 7) {
+						gameOver = true;
+						gameOverText.enabled = true;
+						overlayPanel.enabled = true;
+						HidePieces (piecesOnRocket);
+					}
+					// start the next round
+					else {
+						// increase the trial number
+						trialNumber++;
+
+						// hide the results
+						resultsPanel.SetActive (false);
+						milesNumText.enabled = false;
+						milesLabelText.enabled = false;
+
+						// re-start gameplay
+						timeElapsed = 0f;
+						firstStateChangeOccured = false;
+						leftPanelAnimator.SetBool ("firstStateSelectedLeft", false);
+						rightPanelAnimator.SetBool ("firstStateSelectedRight", false);
+						leftPanelAnimator.SetBool ("stateChangeTriggerTakeoff", false);
+						rightPanelAnimator.SetBool ("stateChangeTriggerTakeoff", false);
+						leftPanelAnimator.SetTrigger ("newRoundStartLeft");
+						rightPanelAnimator.SetTrigger ("newRoundStartRight");
+						foregroundAnimator.SetTrigger ("RestartRound");
+						lastPieceTypeSelected = Constants.NONE_SELECTED;
+						currentPieceTypeSelected = Constants.NONE_SELECTED;
+						launched = false;
+						stoppedLaunch = false;
+						StartDragAndDropGameplay ();
+					}
+				}
 
 				// increment the time elapsed
 				timeElapsed += Time.deltaTime;
 			}
 		}
-		
-//		// Update is called once per frame
-//		void Update () {
-//
-//			if (gameStarted) {
-//				// update the timer
-//				remainingTime = initialTimerValue - timeElapsed;
-//				if (remainingTime > 0.0) {
-//					if (GetSeconds (remainingTime) != remainingTimeSec) {
-//						// get remaining seconds
-//						remainingTimeSec = GetSeconds (remainingTime);
-//						// set the timer text
-//						SetCountdownTimerText (remainingTimeSec);
-//						// play the beeping sound if it's 5,4,3,2,1 seconds left
-//						if (remainingTimeSec == 1 || remainingTimeSec == 2 || remainingTimeSec == 3 || 
-//							remainingTimeSec == 4 || remainingTimeSec == 5) {
-//							audioSource1.PlayOneShot (countdownBeep, 1F);
-//						}
-//					}
-//				} else {
-//					// we can trigger the launch here
-//
-//
-//					GameObject foreground = GameObject.Find ("Foreground");
-//					foreground.transform.Translate (Vector3.down);
-//					GameObject bottomPanel = GameObject.Find ("BottomPanel");
-//					bottomPanel.transform.Translate (Vector3.down);
-//					GameObject leftPanel = GameObject.Find ("LeftPiecePanel");
-//					leftPanel.transform.Translate (Vector3.down);
-//					GameObject rightPanel = GameObject.Find ("RightPiecePanel");
-//					rightPanel.transform.Translate (Vector3.down);
-//
-//					var script = gameObject.GetComponent<TouchInputHandler> ();
-//
-//					script.endSequence ();
-//
-//					GameObject black = GameObject.Find ("black");
-//
-//					if (launched == false) {
-//						launched = true;
-//
-//						// show the distance stats
-//						distanceText.enabled = true;
-//						
-//						// hide the question mark
-//						GameObject questionMark = GameObject.Find ("QuestionArea");
-//						questionMark.GetComponent<SpriteRenderer> ().enabled = false;
-//
-//						// show the miles
-//						milesText.enabled = true;
-//
-//						// hide the timer
-//						timerSavePosition = timer.transform.position;
-//						timer.GetComponent<Text> ().enabled = false;
-//						//timer.transform.position = new Vector3(-1000, -1000, 0);
-//
-//
-//						weight.transform.position = new Vector3 (-1000, -1000, 0);
-//						airResistance.transform.position = new Vector3 (-1000, -1000, 0);
-//						fuel.transform.position = new Vector3 (-1000, -1000, 0);
-//						power.transform.position = new Vector3 (-1000, -1000, 0);
-//
-//						// enable the jet liftoff animation if we have the engine or propeller fins
-//						foreach (GameObject piece in GameObject.Find("GameManager").GetComponent<TouchInputHandler>().rocketPieces) {
-//							if (piece.name.Contains ("fin_Engine") || piece.name.Contains ("fin_Propeller")) {
-//								// if it's on the left side
-//								if (piece.transform.position.x < 0) {
-//									leftJetEmission.enabled = true;
-//								} 
-//								// or if it's on the right side 
-//								else {
-//									rightJetEmission.enabled = true;
-//								}
-//							}
-//						}
-//
-//						// enable the jet liftoff animation for the bottom jets
-//						bottomJetEmission1.enabled = true;
-//						bottomJetEmission2.enabled = true;
-//						bottomJetEmission3.enabled = true;
-//						bottomJetEmission4.enabled = true;
-//
-//						var pos = black.transform.position;
-//						pos = new Vector3 (0, 0, 0);
-//						black.transform.position = pos;
-//						
-//						
-//						// set the clip of audioSource2 to the liftoff sound
-//						audioSource1.clip = liftoffSound;
-//						
-//						// start the liftoff sound
-//						audioSource1.Play ();
-//					}
-//
-//					var a = black.GetComponent<SpriteRenderer> ().color;
-//					a = new Color (1f, 1f, 1f, alphaSet);
-//					black.GetComponent<SpriteRenderer> ().color = a;
-//
-//					// update the distance text to show how far the rocket has gone
-//					distanceText.text = distance.ToString ();
-//
-//					maxDistance = script.calculateDistance ();
-//					if (distance < maxDistance) {
-//						distance += 1;
-//						if (launched == true) {
-//							alphaSet += .001f;
-//							
-//						}
-//
-//						if (GetSeconds (remainingTime2) != remainingTimeSec2) {
-//							remainingTimeSec2 = GetSeconds (remainingTime2);
-//							SetCountdownTimerText (0);
-//						}
-//					} else {
-//						distance = maxDistance;
-//
-//						// stop the liftoff sound
-//						audioSource1.Stop ();
-//
-//						// set the distance value for this trial
-//						if (doOnce == false) {
-//							for (int i = 0; i < distanceVals.Count; i++)
-//							{
-//								if (distanceVals[i] == -1)
-//								{
-//									distanceVals[i] = maxDistance;
-//									break;
-//								}
-//							}
-//							doOnce = true;
-//						}
-//					
-//						resultsPanel.GetComponent<Animator> ().SetTrigger ("go");
-//
-//						// hide all of the jet emissions
-//						bottomJetEmission1.enabled = false;
-//						bottomJetEmission2.enabled = false;
-//						bottomJetEmission3.enabled = false;
-//						bottomJetEmission4.enabled = false;
-//						rightJetEmission.enabled = false;
-//						leftJetEmission.enabled = false;
-//
-//						int y_val;
-//						for (int i = 0; i < distanceVals.Count; i++)
-//						{
-//							if (distanceVals[i] != -1)
-//							{
-//								y_val = -16 + 7 * i;
-//								trialResults[i].transform.position = resultsPanel.transform.position - new Vector3 (-36, y_val, 0);
-//							}
-//						}
-//
-//
-//						int trialChanged = -1; // note trials in this case will start at 0
-//						for (int i = 0; i < distanceVals.Count; i++)
-//						{
-//							if (distanceVals[i] != oldDistanceVals[i])
-//							{
-//								trialChanged = i;
-//								break;
-//							}
-//						}
-//						
-//						// Only update the text displays and saved variables (and send a Thalamus message) when the results values change
-//						if (trialChanged != -1)
-//						{
-//							trialResults[trialChanged].GetComponent<Text>().text = "Trial " + (trialChanged + 1).ToString() + ":   " + distanceVals[trialChanged].ToString();
-//							GameObject.Find ("SavedVariables").GetComponent<SavedVariables> ().distanceVals[trialChanged] = distanceVals[trialChanged];
-//							oldDistanceVals[trialChanged] = distanceVals[trialChanged];
-//							GameObject.Find ("SavedVariables").GetComponent<SavedVariables> ().gameStarted = gameStarted;
-//
-//							// send the results to Thalamus
-//							string resultsString = "results*";
-//							for (int i = 0; i < distanceVals.Count; i++)
-//							{
-//								resultsString = resultsString + distanceVals[i].ToString();
-//								if (i != (distanceVals.Count - 1))
-//								{
-//									resultsString = resultsString + "*";
-//								}
-//							}
-//
-//							if (sendThalamusMsgs) {
-//								thalamusUnity.Publisher.SentFromUnityToThalamus (resultsString);
-//							}
-//
-//						}
-//
-//
-//						// Put the game over panel once the results panel has come out
-//						AnimatorStateInfo currentResultsPanelState = resultsAnimator.GetCurrentAnimatorStateInfo (0);
-//						int trialNum = GameObject.Find ("SavedVariables").GetComponent<SavedVariables> ().trialNumber;
-//
-//						if (currentResultsPanelState.IsName ("Base Layer.stay"))
-//						{
-//							paused = true;
-//
-//							if (trialNum >= totalTrialsNumber)
-//							{
-//								overlayPanel.enabled = true;
-//								gameOverText.enabled = true;
-//							}
-//						}
-//
-//						timer.transform.position = timerSavePosition;
-//						remainingTime2 = secondInitialValue - timeElapsed2;
-//						if (remainingTime2 > 0.0) {
-//							if (GetSeconds (remainingTime2) != remainingTimeSec2) {
-//								remainingTimeSec2 = GetSeconds (remainingTime2);
-//								SetCountdownTimerText (remainingTimeSec2);
-//							}
-//						} else {
-//							if (GetSeconds (remainingTime2) != remainingTimeSec2) {
-//								remainingTimeSec2 = GetSeconds (remainingTime2);
-//								SetCountdownTimerText (0);
-//
-//								// hide the distance stats
-//								distanceText.enabled = false;
-//								milesText.enabled = false;
-//							}
-//
-//							// increase the trail number & enable/disable restart
-//							if (trialNum < totalTrialsNumber)
-//							{
-//								GameObject.Find ("SavedVariables").GetComponent<SavedVariables> ().trialNumber++;
-//								Debug.Log ("Trial number: " + GameObject.Find ("SavedVariables").GetComponent<SavedVariables> ().trialNumber.ToString ());
-//
-//								canRestart = true;
-//
-//								paused = false;
-//							}
-//						
-//						}
-//						timeElapsed2 += Time.deltaTime;
-//
-//					}
-//
-//
-//					Camera.main.orthographicSize = fov;
-//					//fov += .05f;
-//
-//				}
-//
-//				// increment the time elapsed
-//				timeElapsed += Time.deltaTime;
-//
-//			}
-//		}
 
 		//calculates how far the rocket should go
 		public int calculateDistance() {
@@ -772,7 +552,7 @@ namespace BuildARocketGame {
 
 		public void StartGame() {
 			
-			savedVariables.gameStarted = true;
+			gameStarted = true;
 
 			// send the condition selected to Thalamus 
 			if (toggleR.GetComponent<Toggle> ().isOn) {
@@ -794,23 +574,6 @@ namespace BuildARocketGame {
 			// hide the UI elements 
 			HideUIElements ();
 
-			StartDragAndDropGameplay ();
-		}
-
-		void StartDragAndDropGameplay () {
-
-			// show the timer
-			countdownTimer.enabled = true;
-
-			// show the outline pieces 
-			UpdateOutlineAndRocketPanelPieces ();
-
-			// show the stats panel
-			statsPanel.SetActive (true);
-
-			// show the question mark 
-			questionMark.SetActive (true);
-
 			// subscribe to the event that indicates clicks on outline pieces
 			Slot.OnClickForPanelChange += TriggerPanelChange;
 
@@ -828,10 +591,26 @@ namespace BuildARocketGame {
 
 			// subscribe to the event that alerts the game manager of a piece dropped on a question mark
 			DragHandler.OnPieceDroppedOnQuestionMark += PieceDroppedOnQuestionMark;
+
+			StartDragAndDropGameplay ();
+		}
+
+		void StartDragAndDropGameplay () {
+
+			// show the timer
+			countdownTimer.enabled = true;
+
+			// show the outline pieces 
+			UpdateOutlineAndRocketPanelPieces ();
+
+			// show the stats panel
+			statsPanel.SetActive (true);
+
+			// show the question mark 
+			questionMark.SetActive (true);
 		}
 
 		void StartRocketLaunch () {
-			Debug.Log ("Launch rocket!");
 			// indicate that we've launched
 			launched = true;
 
@@ -900,7 +679,6 @@ namespace BuildARocketGame {
 		}
 
 		void StopRocketLaunch () {
-			Debug.Log ("Stop rocket");
 			stoppedLaunch = true;
 
 			// stop the liftoff sound
