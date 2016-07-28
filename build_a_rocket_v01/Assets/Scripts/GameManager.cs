@@ -90,8 +90,7 @@ namespace BuildARocketGame {
 		private ParticleSystem.EmissionModule rightJetEmission;
 
 		// animator and related variables
-		public Animator leftPanelAnimator;
-		public Animator rightPanelAnimator;
+		public Animator panelsAnimator;
 		private bool firstStateChangeOccured = false;
 
 		// animator for the foreground
@@ -132,13 +131,6 @@ namespace BuildARocketGame {
 		private ThalamusUnity thalamusUnity;
 
 		void Awake () {
-
-			if (gameStarted) {
-				HideUIElements ();
-			} else {
-				gameOverText.enabled = false;
-			}
-
 			// initialize all of the emission modules
 			bottomJetEmission1 = bottomJet1.emission;
 			bottomJetEmission2 = bottomJet2.emission;
@@ -189,6 +181,9 @@ namespace BuildARocketGame {
 
 			// hide the question mark
 			questionMark.SetActive (false);
+
+			// hide the game over text
+			gameOverText.enabled = false;
 
 			// hide the distance stats
 			milesNumText.enabled = false;
@@ -284,6 +279,8 @@ namespace BuildARocketGame {
 						gameOverText.enabled = true;
 						overlayPanel.enabled = true;
 						HidePieces (piecesOnRocket);
+						milesLabelText.enabled = false;
+						milesNumText.enabled = false;
 					}
 					// start the next round
 					else {
@@ -298,12 +295,6 @@ namespace BuildARocketGame {
 						// re-start gameplay
 						timeElapsed = 0f;
 						firstStateChangeOccured = false;
-						leftPanelAnimator.SetBool ("firstStateSelectedLeft", false);
-						rightPanelAnimator.SetBool ("firstStateSelectedRight", false);
-						leftPanelAnimator.SetBool ("stateChangeTriggerTakeoff", false);
-						rightPanelAnimator.SetBool ("stateChangeTriggerTakeoff", false);
-						leftPanelAnimator.SetTrigger ("newRoundStartLeft");
-						rightPanelAnimator.SetTrigger ("newRoundStartRight");
 						foregroundAnimator.SetTrigger ("RestartRound");
 						lastPieceTypeSelected = Constants.NONE_SELECTED;
 						currentPieceTypeSelected = Constants.NONE_SELECTED;
@@ -631,10 +622,7 @@ namespace BuildARocketGame {
 			HidePieces (selectedFinOutlineSlots);
 
 			// trigger the animations to hide the side panels and the ground
-			leftPanelAnimator.SetTrigger ("stateChangeTriggerLeft");
-			rightPanelAnimator.SetTrigger ("stateChangeTriggerRight");
-			leftPanelAnimator.SetBool ("stateChangeTriggerTakeoff", true);
-			rightPanelAnimator.SetBool ("stateChangeTriggerTakeoff", true);
+			panelsAnimator.SetTrigger("movePanelsOut");
 			foregroundAnimator.SetTrigger ("TriggerLaunch");
 
 			// show the distance stats
@@ -700,11 +688,9 @@ namespace BuildARocketGame {
 			if (selectedOutlineType != currentPieceTypeSelected) {
 				// play the animations to hide the sidebars
 				if (firstStateChangeOccured == true) {
-					leftPanelAnimator.SetTrigger ("stateChangeTriggerLeft");
-					rightPanelAnimator.SetTrigger ("stateChangeTriggerRight");
+					panelsAnimator.SetTrigger ("movePanelsInOut");
 				} else {
-					leftPanelAnimator.SetBool ("firstStateSelectedLeft", true);
-					rightPanelAnimator.SetBool ("firstStateSelectedRight", true);
+					panelsAnimator.SetTrigger ("movePanelsIn");
 					firstStateChangeOccured = true;
 				}
 

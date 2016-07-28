@@ -19,7 +19,6 @@ Players have 7 trials to try and make the rocket fly as high as they can. Each t
 The rocket distance (*D*) is calculated with the following formula: *D = p (α<sub>1</sub>F + α<sub>2</sub>(F ∗ P ) − α<sub>3</sub>W − α<sub>4</sub>R<sub>air</sub> + β)*, where *F* is the rocket fuel, *P* is the rocket power, *R<sub>air</sub>* is the rocket air-resistance, *W* is the rocket weight, *p* is a penalty for not having pieces filled in, and *α* and *β* are constants. This equation is not meant to simulate real-world rocket dynamics, but rather, the intuitive relationship of each of the four factors highlighted in the game (fuel, power, weight, and air resistance). Weight (*W*) and air resistance (*R<sub>air</sub>*) are negatively correlated with rocket distance. Fuel (*F*) and power (*P*) are positively correlated with rocket distance, where power is dependent on fuel and the presence of boosters. Additionally, just as any rocket with pieces missing would not perform as well, we penalize any rocket that does not have all of its pieces filled in with *p*, a proportion of the pieces on the rocket to the total number of possible pieces that the rocket could hold.
 
 ## Current bugs/todos
-- After the first round, the panels sometimes come in and out at slightly different times.
 - The pieces don't always size correctly when put into their slots. 
 - The results panel's stats change location each round as each round's stats are added. 
 - There are always 4 jet emissions under each booster slot whether or not boosters are present. 
