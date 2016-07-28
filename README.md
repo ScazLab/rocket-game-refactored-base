@@ -45,7 +45,10 @@ public static event PieceAddedToRocket OnPieceAddedToRocket;
 The event design for this game was based on a [Unity tutorial](https://unity3d.com/learn/tutorials/topics/scripting/events). A delegate is declared and then an event. Within `Slot.cs` we call `OnPieceAddedToRocket(DragHandler.itembeingdragged)`. This publishes this event to all methods subscribing. Within our `GameManager.cs`, we're subscribing to all events triggered in the game and responding to them in the Game Manager.  
 
 ### Game Manager
-The Game Manager (`GameManager.cs`) does all of the main game control. Anything that is based off of the timing of the game is triggered in the `Update()` function, and everything else is handled through events that are subscribed to by the Game Manager. 
+The Game Manager (`GameManager.cs`) does all of the main game control. Anything that is based off of the timing of the game is triggered in the `Update()` function, and everything else is handled through events that are subscribed to by the Game Manager. The Game Manager subscribes to events that are fired in `Slots.cs`, `DragHandler.cs`, and `PanelAnimationEventHandler`. The Game Manager subscribes to these events by defining a function (`PieceAddedToRocket()`) in `GameManager.cs` that will be executed whenever it receives an event: 
+```cs
+Slot.OnPieceAddedToRocket += PieceAddedToRocket;
+```
 
 
 
