@@ -7,8 +7,8 @@ namespace BuildARocketGame {
 	
 	public class Slot : MonoBehaviour, IDropHandler, IPointerClickHandler {
 
-		public delegate void ClickForPanelChange(int pieceType);
-		public static event ClickForPanelChange OnClickForPanelChange; 
+		public delegate void ClickForPanelChangeOutlinePiece(int pieceType);
+		public static event ClickForPanelChangeOutlinePiece OnClickForPanelChangeOutlinePiece; 
 
 		public delegate void PieceAddedToRocket(GameObject pieceAdded);
 		public static event PieceAddedToRocket OnPieceAddedToRocket;
@@ -49,7 +49,7 @@ namespace BuildARocketGame {
 			// if there's a click on a piece that's a dashed outline piece then we want to trigger
 			// the animation that brings in the panels with that kind of piece
 			if (isDashedOutlinePiece) {
-				if (OnClickForPanelChange != null) {
+				if (OnClickForPanelChangeOutlinePiece != null) {
 					int selectedOutlineType = Constants.NONE_SELECTED;
 					if (gameObject.tag == "Body") {
 						selectedOutlineType = Constants.BODY;
@@ -60,7 +60,7 @@ namespace BuildARocketGame {
 					} else if (gameObject.tag == "Engine") {
 						selectedOutlineType = Constants.BOOSTER;
 					}
-					OnClickForPanelChange (selectedOutlineType);
+					OnClickForPanelChangeOutlinePiece (selectedOutlineType);
 				}
 			}
 		}

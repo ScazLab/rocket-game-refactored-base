@@ -574,8 +574,9 @@ namespace BuildARocketGame {
 			// hide the UI elements 
 			HideUIElements ();
 
-			// subscribe to the event that indicates clicks on outline pieces
-			Slot.OnClickForPanelChange += TriggerPanelChange;
+			// subscribe to the events that indicate clicks on outline pieces
+			Slot.OnClickForPanelChangeOutlinePiece += TriggerPanelChange;
+			DragHandler.OnClickForPanelChangeRocketPiece += TriggerPanelChange;
 
 			// subscribe to the event that alerts the game manager of pieces added to the rocket
 			Slot.OnPieceAddedToRocket += PieceAddedToRocket;
@@ -670,8 +671,9 @@ namespace BuildARocketGame {
 		void StopDragAndDropGameplay () {
 
 			// unsubscribe from all events
-			Slot.OnClickForPanelChange -= TriggerPanelChange;
+			Slot.OnClickForPanelChangeOutlinePiece -= TriggerPanelChange;
 			Slot.OnPieceAddedToRocket -= PieceAddedToRocket;
+			DragHandler.OnClickForPanelChangeRocketPiece -= TriggerPanelChange;
 			DragHandler.OnPieceClonedToPanel -= PieceAddedToPanel;
 			DragHandler.OnPieceRemovedByTrash -= PieceRemoved;
 			PanelAnimationEventHandler.OnTriggerPanelIn -= PanelIn;
@@ -694,22 +696,25 @@ namespace BuildARocketGame {
 		}
 
 		void TriggerPanelChange (int selectedOutlineType) {
-			// play the animations to hide the sidebars
-			if (firstStateChangeOccured == true) {
-				leftPanelAnimator.SetTrigger ("stateChangeTriggerLeft");
-				rightPanelAnimator.SetTrigger ("stateChangeTriggerRight");
-			} else {
-				leftPanelAnimator.SetBool ("firstStateSelectedLeft", true);
-				rightPanelAnimator.SetBool ("firstStateSelectedRight", true);
-				firstStateChangeOccured = true;
+			// only switch the panels if we're wanting to put on a different type of piece
+			if (selectedOutlineType != currentPieceTypeSelected) {
+				// play the animations to hide the sidebars
+				if (firstStateChangeOccured == true) {
+					leftPanelAnimator.SetTrigger ("stateChangeTriggerLeft");
+					rightPanelAnimator.SetTrigger ("stateChangeTriggerRight");
+				} else {
+					leftPanelAnimator.SetBool ("firstStateSelectedLeft", true);
+					rightPanelAnimator.SetBool ("firstStateSelectedRight", true);
+					firstStateChangeOccured = true;
+				}
+
+				// update the current and last piece type selected varaibles
+				lastPieceTypeSelected = currentPieceTypeSelected;
+				currentPieceTypeSelected = selectedOutlineType;
+
+				// show/hide the appropriate ouline and rocket panel pieces
+				UpdateOutlineAndRocketPanelPieces();
 			}
-
-			// update the current and last piece type selected varaibles
-			lastPieceTypeSelected = currentPieceTypeSelected;
-			currentPieceTypeSelected = selectedOutlineType;
-
-			// show/hide the appropriate ouline and rocket panel pieces
-			UpdateOutlineAndRocketPanelPieces();
 		}
 
 		void UpdateOutlineAndRocketPanelPieces() {

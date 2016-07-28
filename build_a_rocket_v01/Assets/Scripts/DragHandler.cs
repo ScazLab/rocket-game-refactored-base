@@ -5,7 +5,10 @@ using UnityEngine.EventSystems;
 
 namespace BuildARocketGame {
 
-	public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler {
+	public class DragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler {
+
+		public delegate void ClickForPanelChangeRocketPiece(int pieceType);
+		public static event ClickForPanelChangeRocketPiece OnClickForPanelChangeRocketPiece; 
 
 		public delegate void PieceClonedToPanel(GameObject pieceAdded);
 		public static event PieceClonedToPanel OnPieceClonedToPanel;
@@ -96,6 +99,32 @@ namespace BuildARocketGame {
 
 				// let the game manager know that we've cloned a new piece
 				OnPieceClonedToPanel (clone);
+			}
+		}
+
+		#endregion
+
+		#region IPointerClickHandler implementation
+
+		// we want to enable players to select pieces to place on the rocket not only by touching
+		// the empty slots, but also the pieces that are on those slots
+		public void OnPointerClick (PointerEventData eventData)
+		{
+			// if the parent of the game object is an outline piece (has a slot script) 
+			if (gameObject.transform.parent.gameObject.GetComponent<Slot> () != null) {
+				if (OnClickForPanelChangeRocketPiece != null) {
+					int selectedOutlineType = Constants.NONE_SELECTED;
+					if (gameObject.tag == "Body") {
+						selectedOutlineType = Constants.BODY;
+					} else if (gameObject.tag == "LeftFin" || gameObject.tag == "RightFin") {
+						selectedOutlineType = Constants.FIN;
+					} else if (gameObject.tag == "TopCone") {
+						selectedOutlineType = Constants.CONE;
+					} else if (gameObject.tag == "Engine") {
+						selectedOutlineType = Constants.BOOSTER;
+					}
+					OnClickForPanelChangeRocketPiece (selectedOutlineType);
+				}
 			}
 		}
 

@@ -20,7 +20,6 @@ The rocket distance (*D*) is calculated with the following formula: *D = p (α<s
 
 ## Current bugs/todos
 - After the first round, the panels sometimes come in and out at slightly different times.
-- In order to switch to a certain piece type, you must select a **empty** dotted placeholder piece. 
 - The pieces don't always size correctly when put into their slots. 
 - The results panel's stats change location each round as each round's stats are added. 
 - There are always 4 jet emissions under each booster slot whether or not boosters are present. 
