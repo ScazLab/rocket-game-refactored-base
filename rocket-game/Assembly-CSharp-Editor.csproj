@@ -6,7 +6,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{FC95EFBF-835F-55FF-9118-76B213368FC0}</ProjectGuid>
+    <ProjectGuid>{09D7B65B-5E2E-02C5-DB6E-4190313BFD64}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Assembly-CSharp-Editor</AssemblyName>
@@ -76,10 +76,10 @@
  <HintPath>/Applications/Unity/Unity.app/Contents/UnityExtensions/Unity/TreeEditor/Editor/UnityEditor.TreeEditor.dll</HintPath>
  </Reference>
  <Reference Include="CookComputing.XmlRpcV2">
- <HintPath>/Users/sstrohkorb/Documents/Yale/Lab/projects/sar_year_5/src/rocket-game-refactored-base/build_a_rocket_v01/Assets/Plugins/CookComputing.XmlRpcV2.dll</HintPath>
+ <HintPath>/Users/sstrohkorb/Documents/Yale/Lab/projects/sar_year_5/src/rocket-game-refactored-base/rocket-game/Assets/Plugins/CookComputing.XmlRpcV2.dll</HintPath>
  </Reference>
  <Reference Include="ThalamusUnityClientMessages">
- <HintPath>/Users/sstrohkorb/Documents/Yale/Lab/projects/sar_year_5/src/rocket-game-refactored-base/build_a_rocket_v01/Assets/Plugins/ThalamusUnityClientMessages.dll</HintPath>
+ <HintPath>/Users/sstrohkorb/Documents/Yale/Lab/projects/sar_year_5/src/rocket-game-refactored-base/rocket-game/Assets/Plugins/ThalamusUnityClientMessages.dll</HintPath>
  </Reference>
  <Reference Include="UnityEditor.Graphs">
  <HintPath>/Applications/Unity/Unity.app/Contents/Frameworks/Managed/UnityEditor.Graphs.dll</HintPath>
@@ -90,9 +90,9 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Assembly-CSharp-firstpass.csproj">
-      <Project>{14D71D93-30B4-3780-02D1-F2B9D15459A4}</Project>      <Name>Assembly-CSharp-firstpass</Name>    </ProjectReference>
+      <Project>{AD685FF6-F011-1B1C-CAC8-4D5AD76943EE}</Project>      <Name>Assembly-CSharp-firstpass</Name>    </ProjectReference>
     <ProjectReference Include="Assembly-CSharp.csproj">
-      <Project>{A8779C84-10E5-804C-4B96-5A711B817F52}</Project>      <Name>Assembly-CSharp</Name>    </ProjectReference>
+      <Project>{4D88A668-5FE4-967C-67AF-2B0ADA921C3A}</Project>      <Name>Assembly-CSharp</Name>    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

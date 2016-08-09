@@ -422,10 +422,8 @@ namespace BuildARocketGame {
 		}
 
 		void PieceAddedToRocket (GameObject pieceAdded) {
-			// add the piece to the piecesOnRocket list
-			piecesOnRocket.Add (pieceAdded);
-
-			// and remove the piece from the current lists of rocket pieces
+			// add the piece to the piecesOnRocket list if the piece was previously
+			// on a panel (not moved around inside the rocket
 			int removalIndex = -1;
 			if (pieceAdded.tag == "Body") {
 				for (var i = 0; i < bodyRocketPieces.Count; i++) {
@@ -434,7 +432,10 @@ namespace BuildARocketGame {
 						break;
 					}
 				}
-				bodyRocketPieces.RemoveAt (removalIndex);
+				if (removalIndex != -1) {
+					bodyRocketPieces.RemoveAt (removalIndex);
+					piecesOnRocket.Add (pieceAdded);
+				}
 			} else if (pieceAdded.tag == "RightFin" || pieceAdded.tag == "LeftFin") {
 				for (var i = 0; i < finRocketPieces.Count; i++) {
 					if (pieceAdded.name == finRocketPieces [i].name) {
@@ -442,7 +443,10 @@ namespace BuildARocketGame {
 						break;
 					}
 				}
-				finRocketPieces.RemoveAt (removalIndex);
+				if (removalIndex != -1) {
+					finRocketPieces.RemoveAt (removalIndex);
+					piecesOnRocket.Add (pieceAdded);
+				}
 			} else if (pieceAdded.tag == "TopCone") {
 				for (var i = 0; i < coneRocketPieces.Count; i++) {
 					if (pieceAdded.name == coneRocketPieces [i].name) {
@@ -450,7 +454,10 @@ namespace BuildARocketGame {
 						break;
 					}
 				}
-				coneRocketPieces.RemoveAt (removalIndex);
+				if (removalIndex != -1) {
+					coneRocketPieces.RemoveAt (removalIndex);
+					piecesOnRocket.Add (pieceAdded);
+				}
 			} else if (pieceAdded.tag == "Engine") {
 				for (var i = 0; i < boosterRocketPieces.Count; i++) {
 					if (pieceAdded.name == boosterRocketPieces [i].name) {
@@ -458,7 +465,10 @@ namespace BuildARocketGame {
 						break;
 					}
 				}
-				boosterRocketPieces.RemoveAt (removalIndex);
+				if (removalIndex != -1) {
+					boosterRocketPieces.RemoveAt (removalIndex);
+					piecesOnRocket.Add (pieceAdded);
+				}
 			}
 
 			// update the rocket stats
